@@ -233,7 +233,7 @@
     </li>
 
     
-    <li class="kt-menu__item  kt-menu__item--submenu @yield('syarat_dan_jaminan')" aria-haspopup="true" data-ktmenu-submenu-toggle="hover">
+    <li class="kt-menu__item  {{ Request::route()->getName() == 'transaction.requirements' ? 'kt-menu__item--active' : ''}}" aria-haspopup="true">
         <a href="{{ route('transaction.requirements') }}" class="kt-menu__link ">
             <i class="kt-menu__link-icon la la-paperclip" style="font-size: 1.6em"></i>
             <span class="kt-menu__link-text">Syarat & Jaminan</span>

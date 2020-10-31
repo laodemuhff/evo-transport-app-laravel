@@ -9,6 +9,8 @@ use Validator;
 use App\Models\User;
 use App\Models\AdminFeature;
 use App\Models\UserAdminFeature;
+use Hash;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -71,5 +73,46 @@ class AuthController extends Controller
         Auth::logout();
         session()->flush();
         return redirect()->route('login');
+    }
+
+    public function profile(){
+        $id = Auth::user()->id;
+        $data = User::where('id', $id)->first()->toArray();
+
+        return view('user::edit_profile', $data);
+    }
+
+    public function updateProfile(Request $request){
+        $post = $request->except('_token');
+
+        $id = Auth::user()->id;
+
+        //validate
+        $rules = [
+            'name'                  => ['required'],
+            'email'                 => ['required', Rule::unique('users','email')->ignore($id)],
+            'mobile_number'         => ['required', Rule::unique('users','mobile_number')->ignore($id)],
+            'password'              => ['required', 'min:6'],
+            'confirmation_password' => ['required', 'same:password', 'min:6']
+        ];
+
+        $validator = Validator::make($post, $rules);
+
+        if(!empty($validator->errors()->messages())){
+            return redirect()->back()->withErrors($validator->errors()->messages());
+        }
+
+        unset($post['confirmation_password']);
+        
+        $post['password'] = Hash::make($post['password']);
+        
+        $update = User::where('id', $id)->update($post);
+
+        if($update){
+            return redirect()->back()->with('success', ['Succesfully Update User Profile']);
+        }else{
+            $request->flash();
+            return redirect()->back()->withErrors('Nothing to Update');
+        }
     }
 }

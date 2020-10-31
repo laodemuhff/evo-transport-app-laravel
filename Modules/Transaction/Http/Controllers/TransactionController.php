@@ -254,6 +254,25 @@ class TransactionController extends Controller
         }
     }
 
+    public function requirements(){
+        $data['requirements'] = Setting::where('key', 'syarat_dan_jaminan')->first()['value'];
+
+        return view('transaction::requirements', $data);
+    }
+
+    public function updateRequirements(Request $request){
+        $post = $request->except('_token');
+
+        $update = Setting::where('key', 'syarat_dan_jaminan')->update($post);
+
+        if($update){
+            return redirect()->back()->with('success', ['Succesfully Update Syarat & Jaminan']);
+        }else{
+            $request->flash();
+            return redirect()->back()->withErrors('Failed to update Syarat & Jaminan');
+        }
+    }
+
     public function getNotif(){
         $data['pending'] = Transaction::where('status_transaksi','pending')->where('is_deleted', 0)->get()->count();
         $data['on_rent'] = Transaction::where('status_transaksi','on rent')->where('is_deleted', 0)->get()->count();

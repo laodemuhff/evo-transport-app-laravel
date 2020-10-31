@@ -17,4 +17,6 @@ Route::post('login', 'Admin\AuthController@loginPost')->name('admin.login.post')
 Route::group(['middleware' => ['validate_session']], function(){
 	Route::get('/', 'Admin\AuthController@dashboard')->name('admin.dashboard');
 	Route::get('logout', 'Admin\AuthController@logout')->name('admin.logout');
+	Route::get('profile', 'Admin\AuthController@profile')->name('admin.profile');
+	Route::post('profile', 'Admin\AuthController@updateProfile')->name('admin.profile.update');
 });
