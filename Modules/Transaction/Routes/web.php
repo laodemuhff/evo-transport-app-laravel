@@ -21,4 +21,6 @@ Route::prefix('transaction')->middleware('validate_session')->group(function() {
     Route::delete('delete/{id}', 'TransactionController@delete')->name('transaction.delete')->middleware('feature_control:transaction_delete');
     Route::get('assign-driver/{id}', 'TransactionController@assignDriver')->name('transaction.assign.driver')->middleware('feature_control:transaction_assign_driver');
     Route::post('confirm', 'TransactionController@confirmRent')->name('transaction.confirm')->middleware('feature_control:confirm_transaction');
+    Route::post('requirements', 'TransactionController@requirements')->name('transaction.requirements')->middleware('feature_control:transaction_requirements');
+    Route::get('notif', 'TransactionController@getNotif')->name('transaction.notif');
 });

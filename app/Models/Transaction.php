@@ -8,6 +8,7 @@ use DB;
 class Transaction extends Model
 {
     protected $fillable = [
+        'nomor_faktur',
         'nama_customer',
         'alamat_customer',
         'no_hp_customer',

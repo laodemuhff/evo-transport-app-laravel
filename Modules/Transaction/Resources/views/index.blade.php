@@ -79,7 +79,7 @@
                         <label>Tipe Armada</label>
                         <div class="input-group">
                             <select class="form-control" name="tipe_armada" id="tipe_armada">
-                                <option value=""></option>
+                                <option value="{{null}}">All</option>
                                 @foreach ($tipe_armada as $item)
                                     <option value="{{ $item['tipe'] }}">{{ ucfirst($item['tipe']) }}</option>
                                 @endforeach
@@ -104,7 +104,7 @@
                     <div class="form-group ">
                         <label>Pickup Date</label>
                         <div class="input-group">
-                            <input type="date" class="form-control" name="pickup_date" id="pickup_date" value="{{ date('Y-m-d') }}">
+                            <input type="date" class="form-control" name="pickup_date" id="pickup_date">
                         </div>
                     </div>
                 </div>
@@ -113,7 +113,8 @@
                         <label>Status Lepas Kunci</label>
                         <div class="input-group">
                             <select class="form-control" name="status_lepas_kunci" id="status_lepas_kunci">
-                                <option value="">None</option>
+                                <option value="{{null}}">All</option>
+                                <option value="none">None</option>
                                 @foreach ($status_lepas_kunci as $item)
                                     <option value="{{ $item }}">{{ ucfirst($item) }}</option>
                                 @endforeach
@@ -126,7 +127,8 @@
                         <label>Status Pengambilan</label>
                         <div class="input-group">
                             <select class="form-control" name="status_pengambilan" id="status_pengambilan">
-                                <option value="">None</option>
+                                <option value="{{null}}">All</option>
+                                <option value="none">None</option>
                                 @foreach ($status_pengambilan as $item)
                                     <option value="{{ $item }}">{{ ucfirst($item) }}</option>
                                 @endforeach
@@ -336,7 +338,8 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                         <form action="{{ route('transaction.confirm') }}" method="POST">
-                            <button type="submit" class="btn btn-primary" value="{{$item['id']}}">Confirm Rent</button>
+                            @csrf
+                            <button type="submit" class="btn btn-primary" name="id" value="{{$item['id']}}" onclick="return confirm('Apakah Anda Yakin Ingin Mengkonfirmasi Pembayaran Ini?')">Confirm Rent</button>
                         </form>
                     </div>
                 </div>

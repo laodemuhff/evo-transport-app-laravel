@@ -328,5 +328,18 @@ class MyHelper
         return 'Rp. '.number_format($price,0,',', '.');
     }
 
+    public static function generateNomorFaktur($last_order = null){
+        $number = 1;
+
+        if($last_order == null){
+            return 'FAKTUR-'.Self::createrandom(4, null, 'ABCDEFGHJKLMNPQRSTUVWXYZ').'-'.$number;
+        }else{
+            $strings = explode('-', $last_order);
+            $number = ++$strings[2];
+
+            return 'FAKTUR-'.Self::createrandom(4, null, 'ABCDEFGHJKLMNPQRSTUVWXYZ').'-'.$number;
+        }
+    }
+
 }
 ?>

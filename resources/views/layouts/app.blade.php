@@ -7,7 +7,8 @@
 		<title>Evo Transport | @yield('title')</title>
 		<meta name="description" content="">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+		<meta name="csrf-token" content="{{ csrf_token() }}">
+		<meta name="base_url" content="{{ url('/') }}">
 
 		{{-- begin::Fonts --}}
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700|Asap+Condensed:500">
@@ -18,6 +19,7 @@
 		<link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
 		<link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
 		<link href="{{ asset('assets/css/custom_switch_button.css') }}" rel="stylesheet" type="text/css" />
+		<link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 		{{-- end::Global Theme Styles --}}
 
         @yield('styles')
@@ -213,7 +215,41 @@
 		{{-- <!--begin::Global Theme Bundle(used by all pages) --> --}}
 		<script src="{{ asset('assets/plugins/global/plugins.bundle.js') }}" type="text/javascript"></script>
         <script src="{{ asset('assets/js/scripts.bundle.js') }}" type="text/javascript"></script>
-        {{-- <!--end::Global Theme Bundle --> --}}
+		{{-- <!--end::Global Theme Bundle --> --}}
+		
+		<script>
+			$(function(){
+				notifyTransaction();
+			})
+
+			function notifyTransaction(){
+				var url = $("meta[name='base_url']").attr('content');
+				console.log(url)
+				$.ajax({
+					type : 'GET',
+					dataType: 'json',
+					url: url+'/transaction/notif'
+				}).done(function(result){
+					//console.log(result)
+					if(result.pending > 0){
+						$('#notif_pending_class_1').addClass('kt-menu__link-badge');
+						$('#notif_pending_class_2').addClass('kt-badge kt-badge--warning kt-badge--inline');
+						$('#notif_pending_class_2').html(result.pending + ' fleet');
+					}
+
+					if(result.on_rent > 0){
+						$('#notif_onrent_class_1').addClass('kt-menu__link-badge');
+						$('#notif_onrent_class_2').addClass('kt-badge kt-badge--success kt-badge--inline');
+						$('#notif_onrent_class_2').html(result.on_rent + ' fleet');
+					}
+
+				}).fail(function(result){
+		
+				})
+
+				setTimeout(notifyTransaction, 10000);
+			}
+		</script>
         @yield('scripts')
 	</body>
 
