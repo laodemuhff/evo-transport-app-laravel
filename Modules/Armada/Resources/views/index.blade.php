@@ -28,7 +28,7 @@
                         <label>Tipe Armada</label>
                         <div class="input-group">
                             <select class="form-control" name="id_tipe_armada" id="id_tipe_armada">
-                                <option value=""></option>
+                                <option value="">All</option>
                                 @foreach ($tipe_armada as $item)
                                     <option value="{{ $item['id'] }}">{{ ucfirst($item['tipe']) }}</option>
                                 @endforeach
@@ -41,7 +41,7 @@
                         <label>Status Armada</label>
                         <div class="input-group">
                             <select class="form-control" name="status_armada" id="status_armada">
-                                <option value=""></option>
+                                <option value="">All</option>
                                 @foreach ($status_armada as $item)
                                     <option value="{{ $item }}">{{ ucfirst($item) }}</option>
                                 @endforeach
@@ -54,7 +54,7 @@
                         <label>Status Driver</label>
                         <div class="input-group">
                             <select class="form-control" name="status_driver" id="status_driver">
-                                <option value=""></option>
+                                <option value="">All</option>
                                 @foreach ($status_driver as $item)
                                     <option value="{{ $item }}">{{ ucfirst($item) }}</option>
                                 @endforeach

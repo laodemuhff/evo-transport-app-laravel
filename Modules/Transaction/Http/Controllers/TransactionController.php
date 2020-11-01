@@ -14,95 +14,17 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Validator;
 use Illuminate\Validation\Rule;
+use Auth;
 
 class TransactionController extends Controller
 {
-    public function create()
-    {
-        $tipe_armada = TipeArmada::with(['armada' => function($query){
-            $query->where('status_armada', 'ready');
-        }])->get()->toArray();
-        
-        $data['tipe_armada'] = array(); 
-        foreach($tipe_armada as $tipe){
-            $data['tipe_armada'][$tipe['tipe']] = $tipe['armada'];
-        }
-
-        $data['price_pengambilan_dikirim'] = Setting::where('key', 'tambahan_harga_pengambilan_dikirim')->first()['value'] ?? 0;
-        $data['price_lepas_kunci_dikirim'] = Setting::where('key', 'tambahan_harga_lepas_kunci_dikirim')->first()['value'] ?? 0;
-        $data['status_lepas_kunci'] = Transaction::getEnumValues('status_lepas_kunci');
-        $data['status_pengambilan'] = Transaction::getEnumValues('status_pengambilan');
-        //dd($data);
-        return view('transaction::create', $data);
-    }
-
-    public function store(Request $request){
-        DB::beginTransaction();
-        $post = $request->except('_token');
-
-        // dd($post);
-        
-        $post['grand_total'] = str_replace(['Rp', 'Rp.', ' ', '.', ','], '', $post['grand_total']);
-        $post['pickup_date'] = Self::format_date($post['pickup_date']);
-
-        $rules = [
-            'nama_customer'      => [ 'required' ],
-            'alamat_customer'    => [ 'required' ],
-            'no_hp_customer'     => [ 'required', 'unique:transactions,no_hp_customer', 'phone_number_indo', 'min:11', 'max:13'],
-            'id_armada'          => [ 'required', 'numeric' ],
-            'durasi_sewa'        => [ 'required', 'numeric' ],
-            'pickup_date'        => [ 'required', 'date' ],
-            'status_lepas_kunci' => [ Rule::in([null, 'off key', 'shipped off key']) ],
-            'status_pengambilan' => [ Rule::in([null, 'taken in place', 'send out car']) ],
-            'grand_total'        => [ 'required','numeric' ],
-        ];
-
-        $messages = [
-            'no_hp_customer.phone_number_indo' => ':attribute must begin with 08 or 62',
-            'status_lepas_kunci.in' => ':attribute is not included on the list',
-            'status_pengambilan.in' => ':attribute is not included on the list'
-        ];
-
-        $validator = Validator::make($post, $rules, $messages);
-
-        if(!empty($validator->errors()->messages())){
-            $request->flash();
-            return redirect()->back()->withErrors($validator->errors()->messages());
-        }
-
-        try {
-            unset($post['tipe_armada']);
-            $last_order = Transaction::orderBy('created_at', 'desc')->first()['nomor_faktur'] ?? null;
-            $post['nomor_faktur'] = MyHelper::generateNomorFaktur($last_order);
-            $post['status_transaksi'] = 'pending';
-
-            // dd($post);
-
-            $store_transaction = Transaction::create($post);
-
-            if($store_transaction){
-                DB::commit();
-                return redirect('transaction/list/pending')->with('success',['Success create transaction']);
-
-            }else{
-                $request->flash();
-                DB::rollback();
-                return redirect()->back()->withErrors('create transaction failed');
-            }
-        } catch (\Throwable $th) {
-            $request->flash();
-            DB::rollback();
-            return redirect()->back()->withErrors('Galat : '.$th->getMessage());
-        }
-
-    }
 
     public function index($status){
         $data['transaction'] = Transaction::with(['armada' => function($query){
                 $query->with('tipe_armada');
             }
         ])
-        ->where('status_transaksi', $status)
+        ->where('status_transaksi', str_replace('_', ' ', $status))
         ->where('is_deleted', 0)
         ->get();
 
@@ -188,6 +110,85 @@ class TransactionController extends Controller
             ->make(true);
     }
 
+    public function create()
+    {
+        $tipe_armada = TipeArmada::with(['armada' => function($query){
+            $query->where('status_armada', 'ready');
+        }])->get()->toArray();
+        
+        $data['tipe_armada'] = array(); 
+        foreach($tipe_armada as $tipe){
+            $data['tipe_armada'][$tipe['tipe']] = $tipe['armada'];
+        }
+
+        $data['price_pengambilan_dikirim'] = Setting::where('key', 'tambahan_harga_pengambilan_dikirim')->first()['value'] ?? 0;
+        $data['price_lepas_kunci_dikirim'] = Setting::where('key', 'tambahan_harga_lepas_kunci_dikirim')->first()['value'] ?? 0;
+        $data['status_lepas_kunci'] = Transaction::getEnumValues('status_lepas_kunci');
+        $data['status_pengambilan'] = Transaction::getEnumValues('status_pengambilan');
+        //dd($data);
+        return view('transaction::create', $data);
+    }
+
+    public function store(Request $request){
+        DB::beginTransaction();
+        $post = $request->except('_token');
+
+        // dd($post);
+        
+        $post['grand_total'] = str_replace(['Rp', 'Rp.', ' ', '.', ','], '', $post['grand_total']);
+        $post['pickup_date'] = Self::format_date($post['pickup_date']);
+
+        $rules = [
+            'nama_customer'      => [ 'required' ],
+            'alamat_customer'    => [ 'required' ],
+            'no_hp_customer'     => [ 'required', 'unique:transactions,no_hp_customer', 'phone_number_indo', 'min:11', 'max:13'],
+            'id_armada'          => [ 'required', 'numeric' ],
+            'durasi_sewa'        => [ 'required', 'numeric' ],
+            'pickup_date'        => [ 'required', 'date' ],
+            'status_lepas_kunci' => [ Rule::in([null, 'off key', 'shipped off key']) ],
+            'status_pengambilan' => [ Rule::in([null, 'taken in place', 'send out car']) ],
+            'grand_total'        => [ 'required','numeric' ],
+        ];
+
+        $messages = [
+            'no_hp_customer.phone_number_indo' => ':attribute must begin with 08 or 62',
+            'status_lepas_kunci.in' => ':attribute is not included on the list',
+            'status_pengambilan.in' => ':attribute is not included on the list'
+        ];
+
+        $validator = Validator::make($post, $rules, $messages);
+
+        if(!empty($validator->errors()->messages())){
+            $request->flash();
+            return redirect()->back()->withErrors($validator->errors()->messages());
+        }
+
+        try {
+            unset($post['tipe_armada']);
+            $last_order = Transaction::orderBy('created_at', 'desc')->first()['nomor_faktur'] ?? null;
+            $post['nomor_faktur'] = MyHelper::generateNomorFaktur($last_order);
+            $post['status_transaksi'] = 'pending';
+            $post['return_date'] = date('Y-m-d H:i:s', strtotime('+'.$post['durasi_sewa'].' days', strtotime($post['pickup_date'])));
+            // dd($post);
+            $store_transaction = Transaction::create($post);
+
+            if($store_transaction){
+                DB::commit();
+                return redirect('transaction/list/pending')->with('success',['Success create transaction']);
+
+            }else{
+                $request->flash();
+                DB::rollback();
+                return redirect()->back()->withErrors('create transaction failed');
+            }
+        } catch (\Throwable $th) {
+            $request->flash();
+            DB::rollback();
+            return redirect()->back()->withErrors('Galat : '.$th->getMessage());
+        }
+
+    }
+
     // public function edit($id){
     //     $id = decSlug($id);
     //     $armada = Armada::where('id', $id)->first();
@@ -251,6 +252,34 @@ class TransactionController extends Controller
             return redirect('transaction/list/on_rent')->with('success',['Transaction is successfully confirmed']);
         }else{
             return redirect()->back()->withErrors('Failed to confirm transaction');
+        }
+    }
+
+    public function cancelRent(Request $request){
+        $post = $request->except('_token');
+
+        $post['status_transaksi'] = 'cancelled';
+        $post['cancelled_by'] = Auth::user()->email;
+        $update = Transaction::where('id', $post['id'])->update($post);
+
+        if($update){
+            return redirect('transaction/list/cancelled')->with('success',['Transaction is successfully cancelled']);
+        }else{
+            return redirect()->back()->withErrors('Failed to cancel transaction');
+        }
+    }
+
+    public function successRent(Request $request){
+        $post = $request->except('_token');
+
+        $post['status_transaksi'] = 'success';
+        $post['customer_return_date'] = date('Y-m-d H:i:s');
+        $update = Transaction::where('id', $post['id'])->update($post);
+
+        if($update){
+            return redirect('transaction/list/success')->with('success',['Transaction is successfully mark as returned']);
+        }else{
+            return redirect()->back()->withErrors('Failed to mark transaction as returned');
         }
     }
 

@@ -22,7 +22,7 @@
 		<link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 		{{-- end::Global Theme Styles --}}
 
-        @yield('styles')
+		@yield('styles')
 	</head>
 
 	<!-- end::Head -->
@@ -104,6 +104,7 @@
 													<div class="kt-notification__item-title kt-font-bold">
 														My Profile
 													</div>
+													<div id="clock">asdsad</div>
 													<div class="kt-notification__item-time">
 														Account settings and more
 													</div>
@@ -250,7 +251,7 @@
 				setTimeout(notifyTransaction, 10000);
 			}
 		</script>
-        @yield('scripts')
+		@yield('scripts')
 	</body>
 
 	<!-- end::Body -->

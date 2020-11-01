@@ -272,7 +272,7 @@
     <script>
         $(function(){
             $('#datetimepicker1').datetimepicker({
-                format: 'd MMM Y - HH:mm:ss',
+                format: 'D MMM Y - HH:mm:ss',
                 defaultDate: new Date(),
             });
 

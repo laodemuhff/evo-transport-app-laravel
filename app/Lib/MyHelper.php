@@ -315,13 +315,18 @@ class MyHelper
             'November',
             'Desember'
         );
-        $pecahkan = explode('-', $tanggal);
-        
-        // variabel pecahkan 0 = tanggal
-        // variabel pecahkan 1 = bulan
-        // variabel pecahkan 2 = tahun
-     
-        return $pecahkan[2] . ' ' . $bulan[ (int)$pecahkan[1] ] . ' ' . $pecahkan[0];
+
+        if($tanggal == null){
+            return '-';
+        }else{
+            $pecahkan = explode('-', $tanggal);
+            
+            // variabel pecahkan 0 = tanggal
+            // variabel pecahkan 1 = bulan
+            // variabel pecahkan 2 = tahun
+         
+            return $pecahkan[2] . ' ' . $bulan[ (int)$pecahkan[1] ] . ' ' . $pecahkan[0];
+        }
     }
 
     public static function IDR($price){
