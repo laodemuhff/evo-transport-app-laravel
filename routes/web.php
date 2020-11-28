@@ -12,6 +12,7 @@
 */
 
 Route::get('login', 'Admin\AuthController@login')->name('login')->middleware('guest');
+Route::get('home', 'HomeController@index')->name('home')->middleware('guest');
 Route::post('login', 'Admin\AuthController@loginPost')->name('admin.login.post');
 
 Route::group(['middleware' => ['validate_session']], function(){
