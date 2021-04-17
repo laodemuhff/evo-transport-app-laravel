@@ -120,16 +120,16 @@
             ajax: "{{ route('armada.table') }}",
             columns: [
                 {data: 'DT_RowIndex', name: 'id', searchable: false, orderable: false},
-                {data: 'photo', name: 'photo',  
+                {data: 'photo', name: 'photo',
                     render: function (data, type, full, meta) {
-                        return "<img src=\"" + data + "\" height=\"50\"/>";
+                        return "<img src=\"{{url('')}}/"+ data +"\" height=\"50\"/>";
                     },
                 },
                 {data: 'kode_armada', name: 'kode_armada'},
                 {data: 'tipe_armada', name: 'tipe_armada'},
                 {data: 'status_armada', name: 'status_armada'},
                 {data: 'status_driver', name: 'status_driver'},
-                {data: 'price', name: 'price', 
+                {data: 'price', name: 'price',
                     render: function (data, type, full, meta) {
                         return 'Rp '+number_format(data, 0, ',', '.');
                     },
@@ -202,7 +202,7 @@
             var id_tipe_armada    = $('#id_tipe_armada').val();
             var status_armada   = $('#status_armada').val();
             var status_driver   = $('#status_driver').val();
-            
+
             console.log(id_tipe_armada+ ' ' + status_armada + ' ' +status_driver)
 
             search(id_tipe_armada, status_armada, status_driver);
@@ -234,7 +234,7 @@
                 },
                 columns: [
                     {data: 'DT_RowIndex', name: 'id', searchable: false, orderable: false},
-                    {data: 'photo', name: 'photo',  
+                    {data: 'photo', name: 'photo',
                         render: function (data, type, full, meta) {
                             return "<img src=\"" + data + "\" height=\"50\"/>";
                         },
@@ -243,7 +243,7 @@
                     {data: 'tipe_armada', name: 'tipe_armada'},
                     {data: 'status_armada', name: 'status_armada'},
                     {data: 'status_driver', name: 'status_driver'},
-                    {data: 'price', name: 'price', 
+                    {data: 'price', name: 'price',
                         render: function (data, type, full, meta) {
                             return 'Rp '+number_format(data, 0, ',', '.');
                         },

@@ -50,7 +50,7 @@ class TransactionController extends Controller
 
         if (isset($post['alamat_customer']))
             $data->where('alamat_customer', 'LIKE', '%'.$post['alamat_customer'].'%');
-            
+
         if (isset($post['no_hp_customer']))
             $data->where('no_hp_customer', 'LIKE', '%'.$post['no_hp_customer'].'%');
 
@@ -72,7 +72,7 @@ class TransactionController extends Controller
         }
 
         if (isset($post['status_pengambilan'])){
-            if($post['status_pengambilan'] == 'none'){     
+            if($post['status_pengambilan'] == 'none'){
                 $data->whereNull('status_pengambilan');
             }else{
                 $data->where('status_pengambilan', $post['status_pengambilan']);
@@ -115,8 +115,8 @@ class TransactionController extends Controller
         $tipe_armada = TipeArmada::with(['armada' => function($query){
             $query->where('status_armada', 'ready');
         }])->get()->toArray();
-        
-        $data['tipe_armada'] = array(); 
+
+        $data['tipe_armada'] = array();
         foreach($tipe_armada as $tipe){
             $data['tipe_armada'][$tipe['tipe']] = $tipe['armada'];
         }
@@ -134,7 +134,7 @@ class TransactionController extends Controller
         $post = $request->except('_token');
 
         // dd($post);
-        
+
         $post['grand_total'] = str_replace(['Rp', 'Rp.', ' ', '.', ','], '', $post['grand_total']);
         $post['pickup_date'] = Self::format_date($post['pickup_date']);
 
@@ -174,7 +174,7 @@ class TransactionController extends Controller
 
             if($store_transaction){
                 DB::commit();
-                return redirect('transaction/list/pending')->with('success',['Success create transaction']);
+                return redirect()->back()->with('success',['Success create transaction']);
 
             }else{
                 $request->flash();
@@ -206,7 +206,7 @@ class TransactionController extends Controller
     // public function update(Request $request, $id){
     //     DB::beginTransaction();
     //     $post = $request->except("_token");
-        
+
     //     $id = decSlug($id);
 
     //     try {
@@ -221,7 +221,7 @@ class TransactionController extends Controller
     //                 $post['photo'] = asset(str_replace('\\', '/', $result['filename']));
     //             }
     //             $post['price'] = str_replace(['Rp', ','], '', $post['price']);
-                
+
     //             $armada = Armada::where('id',$id)->update($post);
 
     //             DB::commit();

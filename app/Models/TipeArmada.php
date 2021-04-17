@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class TipeArmada extends Model
 {
     protected $fillable = [
-        'tipe'
+        'tipe',
+        'tipe_kemudi',
+        'kapasitas_penumpang'
     ];
 
     public function armada(){

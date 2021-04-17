@@ -11,7 +11,7 @@
     <header >
         <div class="main-header">
 
-            <img alt="Hemofilia Kita" src="{{env('APP_URL').'assets/img/logo.png'}}" width="130">
+            <img alt="Hemofilia Kita" src="{{asset('assets/img/logo.png') }}" width="130">
             @include('layouts.notification')
             <form action="{{ route('admin.login.post')}}" method="post">
                 @csrf

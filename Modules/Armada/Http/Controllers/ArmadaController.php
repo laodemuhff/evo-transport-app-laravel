@@ -41,7 +41,7 @@ class ArmadaController extends Controller
             $result = MyHelper::uploadImagePublic('\image\armada\\');
 
             if(isset($result['status']) && $result['status'] == 'success'){
-                $post['photo'] = asset(str_replace('\\', '/', $result['filename']));
+                $post['photo'] = $result['filename'];
                 $post['price'] = str_replace(['Rp', ','], '', $post['price']);
                 Armada::create($post);
 
@@ -111,7 +111,7 @@ class ArmadaController extends Controller
     public function update(Request $request, $id){
         DB::beginTransaction();
         $post = $request->except("_token");
-        
+
         $id = decSlug($id);
 
         try {
@@ -123,10 +123,10 @@ class ArmadaController extends Controller
 
             if(isset($result['status']) && $result['status'] == 'success'){
                 if(isset($post['photo'])){
-                    $post['photo'] = asset(str_replace('\\', '/', $result['filename']));
+                    $post['photo'] = $result['filename'];
                 }
                 $post['price'] = str_replace(['Rp', ','], '', $post['price']);
-                
+
                 $armada = Armada::where('id',$id)->update($post);
 
                 DB::commit();
