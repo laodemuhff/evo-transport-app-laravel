@@ -71,7 +71,7 @@
 										<span class="kt-header__topbar-username kt-visible-desktop">
 											{{-- {{Auth::user()->name}} --}}
 										</span>
-										<img alt="Pic" src="{{ asset('assets/img/blank.png') }}" />
+										<img alt="Pic" src="{{ asset('image/user/user2.png') }}" />
 										<span class="kt-header__topbar-icon kt-bg-brand kt-hidden"><b>S</b></span>
 									</div>
 									<div class="dropdown-menu dropdown-menu-fit dropdown-menu-right dropdown-menu-anim dropdown-menu-xl">
@@ -79,7 +79,7 @@
 										<!--begin: Head -->
 										<div class="kt-user-card kt-user-card--skin-light kt-notification-item-padding-x">
 											<div class="kt-user-card__avatar">
-												<img class="kt-hidden-" alt="Pic" src="{{ asset('assets/img/blank.png') }}" />
+												<img class="kt-hidden-" alt="Pic" src="{{ asset('image/user/user2.png') }}" />
 
 												<!--use below badge element instead the user avatar to display username's first letter(remove kt-hidden class to display it) -->
 												<span class="kt-badge kt-badge--username kt-badge--unified-success kt-badge--lg kt-badge--rounded kt-badge--bold kt-hidden">S</span>
@@ -217,7 +217,7 @@
 		<script src="{{ asset('assets/plugins/global/plugins.bundle.js') }}" type="text/javascript"></script>
         <script src="{{ asset('assets/js/scripts.bundle.js') }}" type="text/javascript"></script>
 		{{-- <!--end::Global Theme Bundle --> --}}
-		
+
 		<script>
 			$(function(){
 				notifyTransaction();
@@ -245,7 +245,7 @@
 					}
 
 				}).fail(function(result){
-		
+
 				})
 
 				setTimeout(notifyTransaction, 10000);

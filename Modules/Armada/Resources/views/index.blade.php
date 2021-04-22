@@ -25,12 +25,22 @@
             <div class="row">
                 <div class="col-md-4">
                     <div class="form-group ">
+                        <label>Kode Armada</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="kode_armada" id="kode_armada" placeholder="e.g:Avanza-ABCD">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group ">
                         <label>Tipe Armada</label>
                         <div class="input-group">
                             <select class="form-control" name="id_tipe_armada" id="id_tipe_armada">
                                 <option value="">All</option>
                                 @foreach ($tipe_armada as $item)
-                                    <option value="{{ $item['id'] }}">{{ ucfirst($item['tipe']) }}</option>
+                                    <option value="{{ $item['id'] }}">
+                                        {{ ucfirst($item['tipe']) }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -43,19 +53,6 @@
                             <select class="form-control" name="status_armada" id="status_armada">
                                 <option value="">All</option>
                                 @foreach ($status_armada as $item)
-                                    <option value="{{ $item }}">{{ ucfirst($item) }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group ">
-                        <label>Status Driver</label>
-                        <div class="input-group">
-                            <select class="form-control" name="status_driver" id="status_driver">
-                                <option value="">All</option>
-                                @foreach ($status_driver as $item)
                                     <option value="{{ $item }}">{{ ucfirst($item) }}</option>
                                 @endforeach
                             </select>
@@ -80,17 +77,19 @@
     <div class="kt-portlet">
         <div class="kt-portlet__body">
             @include('layouts.notification')
+            <div class="row">
+                <div class="col-md-3">
+                    <a href="{{route('armada.create')}}" class="btn btn-primary btn-sm"><i class="la la-plus"></i> Add Armada</a>
+                </div>
+            </div>
             <input id="url" type="hidden" value="{{ url('/') }}">
             <table id="datatable" class="table table-hover" style="width:100%">
                 <thead>
                     <tr>
                         <th>No</th>
-                        <th>Foto</th>
                         <th>Kode Armada</th>
                         <th>Tipe Armada</th>
                         <th>Status Armada</th>
-                        <th>Status Driver</th>
-                        <th>Harga Sewa</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -120,20 +119,9 @@
             ajax: "{{ route('armada.table') }}",
             columns: [
                 {data: 'DT_RowIndex', name: 'id', searchable: false, orderable: false},
-                {data: 'photo', name: 'photo',
-                    render: function (data, type, full, meta) {
-                        return "<img src=\"{{url('')}}/"+ data +"\" height=\"50\"/>";
-                    },
-                },
                 {data: 'kode_armada', name: 'kode_armada'},
                 {data: 'tipe_armada', name: 'tipe_armada'},
                 {data: 'status_armada', name: 'status_armada'},
-                {data: 'status_driver', name: 'status_driver'},
-                {data: 'price', name: 'price',
-                    render: function (data, type, full, meta) {
-                        return 'Rp '+number_format(data, 0, ',', '.');
-                    },
-                },
                 {data: 'action', name: 'action', searchable: false, orderable: false}
             ]
         });
@@ -201,11 +189,11 @@
         $(document).on('click', '#search', function() {
             var id_tipe_armada    = $('#id_tipe_armada').val();
             var status_armada   = $('#status_armada').val();
-            var status_driver   = $('#status_driver').val();
+            var kode_armada   = $('#kode_armada').val();
 
-            console.log(id_tipe_armada+ ' ' + status_armada + ' ' +status_driver)
+            console.log(id_tipe_armada+ ' ' + status_armada + ' ' +kode_armada)
 
-            search(id_tipe_armada, status_armada, status_driver);
+            search(id_tipe_armada, status_armada, kode_armada);
         });
 
         $(document).on('click', '#reset', function(){
@@ -213,7 +201,7 @@
             search();
         });
 
-        function search(id_tipe_armada = '', status_armada = '', status_driver = '') {
+        function search(id_tipe_armada = '', status_armada = '', kode_armada = '') {
             // $.fn.dataTable.ext.errMode = 'none';
 
             var table = $('#datatable').DataTable({
@@ -229,25 +217,14 @@
                     data: function(d) {
                         d.id_tipe_armada = id_tipe_armada;
                         d.status_armada = status_armada;
-                        d.status_driver = status_driver;
+                        d.kode_armada = kode_armada;
                     }
                 },
                 columns: [
                     {data: 'DT_RowIndex', name: 'id', searchable: false, orderable: false},
-                    {data: 'photo', name: 'photo',
-                        render: function (data, type, full, meta) {
-                            return "<img src=\"" + data + "\" height=\"50\"/>";
-                        },
-                    },
                     {data: 'kode_armada', name: 'kode_armada'},
                     {data: 'tipe_armada', name: 'tipe_armada'},
                     {data: 'status_armada', name: 'status_armada'},
-                    {data: 'status_driver', name: 'status_driver'},
-                    {data: 'price', name: 'price',
-                        render: function (data, type, full, meta) {
-                            return 'Rp '+number_format(data, 0, ',', '.');
-                        },
-                    },
                     {data: 'action', name: 'action', searchable: false, orderable: false}
                 ]
             });
@@ -256,7 +233,7 @@
         function reset() {
             $('#id_tipe_armada').val('');
             $('#status_armada').val('');
-            $('#status_driver').val('');
+            $('#kode_armada').val('');
             $('#search').val('').trigger('change');
         }
     </script>

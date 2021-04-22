@@ -17,7 +17,6 @@ class ArmadaController extends Controller
     {
         $data['tipe_armada'] = TipeArmada::all()->toArray();
         $data['status_armada'] = Armada::getEnumValues('status_armada');
-        $data['status_driver'] = Armada::getEnumValues('status_driver');
 
         // dd($data);
         return view('armada::create', $data);
@@ -30,28 +29,21 @@ class ArmadaController extends Controller
         $request->validate([
             'id_tipe_armada' => 'required',
             'kode_armada' => 'required|unique:armadas,kode_armada',
-            'status_armada' => 'required',
-            'status_driver' => 'required',
-            'price' => 'required',
-            'photo' => 'required|image'
+            'status_armada' => 'required'
         ]);
 
         //dd($post);
         try {
-            $result = MyHelper::uploadImagePublic('\image\armada\\');
+            $save = Armada::create($post);
 
-            if(isset($result['status']) && $result['status'] == 'success'){
-                $post['photo'] = $result['filename'];
-                $post['price'] = str_replace(['Rp', ','], '', $post['price']);
-                Armada::create($post);
-
+            if($save){
                 DB::commit();
-                return redirect()->back()->with('success',['Success add armada']);
-
+                return redirect()->back()->with('success',['Sukses Menambahkan Armada']);
             }else{
                 DB::rollback();
-                return redirect()->back()->withErrors('create armada failed');
+                return redirect()->back()->withErrors('Armada Gagal Disimpan');
             }
+
         } catch (\Throwable $th) {
             DB::rollback();
             return redirect()->back()->withErrors('Galat : '.$th->getMessage());
@@ -63,7 +55,6 @@ class ArmadaController extends Controller
         $data['armada'] = Armada::with('tipe_armada')->get();
         $data['tipe_armada'] = TipeArmada::all()->toArray();
         $data['status_armada'] = Armada::getEnumValues('status_armada');
-        $data['status_driver'] = Armada::getEnumValues('status_driver');
 
         return view('armada::index', $data);
     }
@@ -72,18 +63,19 @@ class ArmadaController extends Controller
         $post = $request->all();
 
         $data = Armada::with('tipe_armada');
+
+        if (isset($post['kode_armada']))
+            $data->where('kode_armada', 'LIKE', '%'.$post['kode_armada'].'%');
         if (isset($post['id_tipe_armada']))
             $data->where('id_tipe_armada', $post['id_tipe_armada']);
         if (isset($post['status_armada']))
             $data->where('status_armada', $post['status_armada']);
-        if (isset($post['status_driver']))
-            $data->where('status_driver', $post['status_driver']);
 
         $data = $data->orderBy('updated_at','desc')->get();
 
         return DataTables::of($data)
             ->addColumn('action', function ($data) {
-                return "<a href='".route('armada.edit',[encSlug($data['id'])])."' class='btn btn-warning btn-sm' style='color: white'><i class='flaticon-edit'></i>Update</a> &nbsp; <a href='".route('armada.delete',[encSlug($data['id'])])."' class='btn btn-danger btn-sm btn-delete' title='".$data['kode_armada']."'><i class='flaticon2-trash'></i>Delete</a>";
+                return "<a href='".route('armada.edit',[encSlug($data['id'])])."' class='btn btn-warning btn-sm' style='color: white'><i class='flaticon-edit'></i></a> &nbsp; <a href='".route('armada.delete',[encSlug($data['id'])])."' class='btn btn-danger btn-sm btn-delete' title='".$data['kode_armada']."'><i class='flaticon2-trash'></i></a>";
                 // return "<a href='".route('admin.brand.edit', [$data['id'], $data['email']])."'><i class='fa fa-edit text-warning'></i></a> | <a href='".route('admin.brand.destroy', [$data['id'], $data['email']])."' class='btn-delete' title=".$data['name']."><i class='fa fa-trash text-danger'></i></a>";
             })
             ->addColumn('tipe_armada', function($data){
@@ -102,7 +94,6 @@ class ArmadaController extends Controller
             $data['armada'] = $armada;
             $data['tipe_armada'] = TipeArmada::all()->toArray();
             $data['status_armada'] = Armada::getEnumValues('status_armada');
-            $data['status_driver'] = Armada::getEnumValues('status_driver');
         }
 
         return view('armada::edit', $data);
@@ -115,29 +106,11 @@ class ArmadaController extends Controller
         $id = decSlug($id);
 
         try {
-            if(isset($post['photo'])){
-                $result = MyHelper::uploadImagePublic('\image\armada\\');
-            }else{
-                $result['status'] = 'success';
-            }
+            $armada = Armada::where('id',$id)->update($post);
 
-            if(isset($result['status']) && $result['status'] == 'success'){
-                if(isset($post['photo'])){
-                    $post['photo'] = $result['filename'];
-                }
-                $post['price'] = str_replace(['Rp', ','], '', $post['price']);
+            DB::commit();
+            return redirect()->back()->with('success',['Sukses Update Armada']);
 
-                $armada = Armada::where('id',$id)->update($post);
-
-                DB::commit();
-                return redirect()->back()->with('success',['Success update armada']);
-            }else{
-                DB::rollback();
-
-                if(isset($result['message'])) return redirect()->back()->withErrors($result['message']);
-
-                return redirect()->back()->withErrors('update armada failed');
-            }
         } catch (\Throwable $th) {
             DB::rollback();
             return redirect()->back()->withErrors('Galat : '.$th->getMessage());

@@ -120,19 +120,19 @@
                             </a>
                         </li>
                     @endif
-                    @if(adminFeature(['armada_create']))
+                    {{-- @if(adminFeature(['armada_create']))
                         <li class="kt-menu__item {{ Request::route()->getName() == 'armada.create' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
                             <a href="{{route('armada.create')}}" class="kt-menu__link ">
                                 <i class="kt-menu__link-bullet kt-menu__link-bullet--line"><span></span></i>
                                 <span class="kt-menu__link-text">Add Armada</span>
                             </a>
                         </li>
-                    @endif
+                    @endif --}}
                     @if(adminFeature(['armada_list','armada_update','armada_delete']))
                         <li class="kt-menu__item {{ Request::route()->getName() == 'armada.list' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
                             <a href="{{route('armada.list')}}" class="kt-menu__link ">
                                 <i class="kt-menu__link-bullet kt-menu__link-bullet--line"><span></span></i>
-                                <span class="kt-menu__link-text">List Armada</span>
+                                <span class="kt-menu__link-text">Armada</span>
                             </a>
                         </li>
                     @endif
@@ -171,7 +171,7 @@
             </ul>
         </div>
     </li>
-    
+
     <li class="kt-menu__item  kt-menu__item--submenu @yield('transaction')" aria-haspopup="true" data-ktmenu-submenu-toggle="hover"><a href="javascript:;" class="kt-menu__link kt-menu__toggle"><i class="kt-menu__link-icon la la-cart-plus" style="font-size: 1.6em"></i><span class="kt-menu__link-text">Transaction</span><i class="kt-menu__ver-arrow la la-angle-right"></i></a>
         <div class="kt-menu__submenu "><span class="kt-menu__arrow"></span>
             <ul class="kt-menu__subnav">
@@ -232,7 +232,7 @@
         </div>
     </li>
 
-    
+
     <li class="kt-menu__item  {{ Request::route()->getName() == 'transaction.requirements' ? 'kt-menu__item--active' : ''}}" aria-haspopup="true">
         <a href="{{ route('transaction.requirements') }}" class="kt-menu__link ">
             <i class="kt-menu__link-icon la la-paperclip" style="font-size: 1.6em"></i>

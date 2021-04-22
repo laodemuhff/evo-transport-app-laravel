@@ -10,6 +10,7 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Validator;
 use Illuminate\Validation\Rule;
+use App\Lib\MyHelper;
 
 class TipeArmadaController extends Controller
 {
@@ -19,12 +20,20 @@ class TipeArmadaController extends Controller
      */
     public function index()
     {
-        $data['tipe_armada'] = TipeArmada::all();   
+        $data['tipe_kemudi'] = TipeArmada::getEnumValues('tipe_kemudi');
 
         return view('armada::tipe_armada.index', $data);
     }
 
-    
+    public function create()
+    {
+        $data['tipe_kemudi'] = TipeArmada::getEnumValues('tipe_kemudi');
+
+        // dd($data);
+        return view('armada::tipe_armada.create', $data);
+    }
+
+
     /**
      * Store a newly created resource in storage.
      * @param Request $request
@@ -32,23 +41,71 @@ class TipeArmadaController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'tipe' => 'required|unique:tipe_armadas,tipe'
-        ]);
+        $post = $request->all();
+
+        $rule = [
+            'tipe' => 'required|unique:tipe_armadas,tipe',
+            'kapasitas_penumpang' => 'required',
+            'tipe_kemudi' => 'required',
+            'price12' => 'required',
+            'photo' => 'required|image'
+        ];
+
+        if(isset($post['price-check'])){
+            // set harga sewa 24 jam required
+            $rule['price'] = 'required';
+        }
+
+        if(isset($post['is_driver_allowed'])){
+            $rule['price_driver12'] = 'required';
+            if(isset($post['price-check']))
+                $rule['price_driver'] = 'required';
+        }
+
+        $request->validate($rule);
 
         DB::beginTransaction();
 
         try{
             $post = $request->except('_token');
-            $save = TipeArmada::create($post);
 
-            if($save){
-                DB::commit();
-                return redirect()->back()->withSuccess(['Tipe Armada Behasil Disimpan'] ?? 'Tipe Armada Behasil Disimpan');
-            }else{
-                DB::rollback();
-                return redirect()->back()->withErrors(['Tipe Armada Gagal Disimpan'] ?? 'Tipe Armada Behasil Disimpan');
+            $result = MyHelper::uploadImagePublic('\image\tipe_armada\\');
+
+            if(isset($result['status']) && $result['status'] == 'success'){
+                $post['photo'] = $result['filename'];
+                $post['price12'] = str_replace(['Rp', ','], '', $post['price12']);
+
+                if(isset($post['price'])){
+                    $post['price'] = str_replace(['Rp', ','], '', $post['price']);
+                }
+
+                if(isset($post['price_driver12'])){
+                    $post['price_driver12'] = str_replace(['Rp', ','], '', $post['price_driver12']);
+                }
+
+                if(isset($post['price_driver'])){
+                    $post['price_driver'] = str_replace(['Rp', ','], '', $post['price_driver']);
+                }
+
+                if(!empty($post['is_driver_allowed'])){
+                    $post['is_driver_allowed'] = 1;
+                }
+
+                if(!empty($post['price-check'])){
+                    unset($post['price-check']);
+                }
+
+                $save = TipeArmada::create($post);
+
+                if($save){
+                    DB::commit();
+                    return redirect()->back()->withSuccess(['Tipe Armada Behasil Disimpan'] ?? 'Tipe Armada Behasil Disimpan');
+                }
             }
+
+            DB::rollback();
+            return redirect()->back()->withErrors('Tipe Armada Gagal Disimpan');
+
         }catch(\Throwable $th){
             DB::rollback();
             return redirect()->back()->withErrors('Galat : '.$th->getMessage());
@@ -59,11 +116,35 @@ class TipeArmadaController extends Controller
     public function table(Request $request){
         $post = $request->all();
 
-        $data = TipeArmada::orderBy('updated_at','desc')->get();
+        $data = TipeArmada::select('*');
+
+        if (isset($post['tipe']))
+            $data->where('tipe', 'LIKE', '%'.$post['tipe'].'%');
+
+        if (isset($post['kapasitas_penumpang'])){
+            if($post['kapasitas_penumpang'] == '<= 5')
+                $data->where('kapasitas_penumpang', '<=', 5);
+            if($post['kapasitas_penumpang'] == '> 5')
+                $data->where('kapasitas_penumpang', '>', 5);
+        }
+
+        if (isset($post['tipe_kemudi']))
+            $data->where('tipe_kemudi', $post['tipe_kemudi']);
+
+        if (isset($post['price'])){
+            if($post['price'] == '< 200000')
+                $data->where('price', '<', 200000);
+            if($post['price'] == '>= 200000 AND <= 350000')
+                $data->whereBetween('price', [200000, 350000]);
+            if($post['price'] == '> 350000')
+                $data->where('price', '>', 350000);
+        }
+
+        $data = $data->orderBy('updated_at','desc')->get();
 
         return DataTables::of($data)
             ->addColumn('action', function ($data) {
-                return "<a href='#' data-toggle='modal' data-target='#updateTipeArmada".$data['id']."' class='btn btn-warning btn-sm' style='color: white'><i class='flaticon-edit'></i>Update</a> &nbsp; <a href='".route('tipe_armada.delete',[encSlug($data['id'])])."' class='btn btn-danger btn-sm btn-delete' title='delete ".$data['tipe']."'><i class='flaticon2-trash'></i>Delete</a>";
+                return "<a href='".route('tipe_armada.edit',[encSlug($data['id'])])."' class='btn btn-warning btn-sm' style='color: white'><i class='flaticon-edit'></i></a> &nbsp; <a href='".route('tipe_armada.delete',[encSlug($data['id'])])."' class='btn btn-danger btn-sm btn-delete' title='delete ".$data['tipe']."'><i class='flaticon2-trash'></i></a>";
                 // return "<a href='".route('admin.brand.edit', [$data['id'], $data['email']])."'><i class='fa fa-edit text-warning'></i></a> | <a href='".route('admin.brand.destroy', [$data['id'], $data['email']])."' class='btn-delete' title=".$data['name']."><i class='fa fa-trash text-danger'></i></a>";
             })
             ->addIndexColumn()
@@ -71,6 +152,18 @@ class TipeArmadaController extends Controller
             ->make(true);
     }
 
+
+    public function edit($id){
+        $id = decSlug($id);
+        $tipe_armada = TipeArmada::where('id', $id)->first();
+
+        if ($tipe_armada) {
+            $data['tipe_armada'] = $tipe_armada;
+            $data['tipe_kemudi'] = TipeArmada::getEnumValues('tipe_kemudi');
+        }
+
+        return view('armada::tipe_armada.edit', $data);
+    }
 
 
     /**
@@ -83,30 +176,87 @@ class TipeArmadaController extends Controller
     {
         $post = $request->except('_token');
         $id = decSlug($id);
-        
-        $validator = Validator::make($post, [
-           'tipe' => [
+
+        $rule = [
+            'tipe' => [
                 'required',
-                Rule::unique('tipe_armadas', 'tipe')->ignore($id)
-           ]
-        ]);
+                Rule::unique('tipe_armadas')->ignore($id)
+            ],
+            'kapasitas_penumpang' => 'required',
+            'tipe_kemudi' => 'required',
+            'price12' => 'required',
+            'photo' => 'image'
+        ];
+
+        if(isset($post['price-check'])){
+            // set harga sewa 24 jam required
+            $rule['price'] = 'required';
+        }
+
+        if(isset($post['is_driver_allowed'])){
+            $rule['price_driver12'] = 'required';
+            if(isset($post['price-check']))
+                $rule['price_driver'] = 'required';
+        }
+
+        $validator = Validator::make($post, $rule);
 
         if(!empty($validator->errors()->messages())){
             return redirect()->back()->withErrors($validator->errors()->messages());
         }
-        
+
         DB::beginTransaction();
 
         try{
+            if(isset($post['photo'])){
+                $result = MyHelper::uploadImagePublic('\image\armada\\');
+
+                if(isset($result['status']) && $result['status'] == 'success'){
+                    $post['photo'] = $result['filename'];
+                }
+            }
+
+            $post['price12'] = str_replace(['Rp', ','], '', $post['price12']);
+
+            if(isset($post['price'])){
+                $post['price'] = str_replace(['Rp', ','], '', $post['price']);
+            }else{
+                $post['price'] = null;
+            }
+
+            if(isset($post['price_driver12'])){
+                $post['price_driver12'] = str_replace(['Rp', ','], '', $post['price_driver12']);
+            }else{
+                $post['price_driver12'] = null;
+            }
+
+            if(isset($post['price_driver'])){
+                $post['price_driver'] = str_replace(['Rp', ','], '', $post['price_driver']);
+            }else{
+                $post['price_driver'] = null;
+            }
+
+            if(!empty($post['is_driver_allowed'])){
+                $post['is_driver_allowed'] = 1;
+            }else{
+                $post['is_driver_allowed'] = 0;
+            }
+
+            if(!empty($post['price-check'])){
+                unset($post['price-check']);
+            }
+
+            // dd($post);
             $save = TipeArmada::where('id', $id)->update($post);
 
             if($save){
                 DB::commit();
                 return redirect()->back()->withSuccess(['Tipe Armada Behasil Diubah'] ?? 'Tipe Armada Behasil Diubah');
-            }else{
-                DB::rollback();
-                return redirect()->back()->withErrors(['Tipe Armada Gagal Diubah'] ?? 'Tipe Armada Gagal Diubah');
             }
+
+            DB::rollback();
+            return redirect()->back()->withErrors(['Tipe Armada Gagal Diubah'] ?? 'Tipe Armada Gagal Diubah');
+
         }catch(\Throwable $th){
             DB::rollback();
             return redirect()->back()->withErrors('Galat : '.$th->getMessage());

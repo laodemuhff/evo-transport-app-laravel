@@ -112,20 +112,22 @@ class TransactionController extends Controller
 
     public function create()
     {
-        $tipe_armada = TipeArmada::with(['armada' => function($query){
-            $query->where('status_armada', 'ready');
-        }])->get()->toArray();
+        $data['tipe_armada'] = array_filter(TipeArmada::with(['armada' => function($query){
+                                    $query->where('status_armada', 'ready');
+                                }])->get()->toArray(), function($item){
+                                    return !empty($item['armada']);
+                                });
 
-        $data['tipe_armada'] = array();
-        foreach($tipe_armada as $tipe){
-            $data['tipe_armada'][$tipe['tipe']] = $tipe['armada'];
-        }
+        // $data['tipe_armada'] = array();
+        // foreach($tipe_armada as $tipe){
+        //     $data['tipe_armada'][$tipe['tipe']] = $tipe['armada'];
+        // }
 
         $data['price_pengambilan_dikirim'] = Setting::where('key', 'tambahan_harga_pengambilan_dikirim')->first()['value'] ?? 0;
         $data['price_lepas_kunci_dikirim'] = Setting::where('key', 'tambahan_harga_lepas_kunci_dikirim')->first()['value'] ?? 0;
         $data['status_lepas_kunci'] = Transaction::getEnumValues('status_lepas_kunci');
         $data['status_pengambilan'] = Transaction::getEnumValues('status_pengambilan');
-        //dd($data);
+        // dd($data);
         return view('transaction::create', $data);
     }
 

@@ -10,10 +10,7 @@ class Armada extends Model
     protected $fillable = [
         'kode_armada',
         'id_tipe_armada',
-        'status_armada',
-        'status_driver',
-        'price',
-        'photo'
+        'status_armada'
     ];
 
     public function tipe_armada(){
