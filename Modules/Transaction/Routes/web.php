@@ -19,7 +19,7 @@ Route::prefix('transaction')->middleware('validate_session')->group(function() {
     Route::get('edit/{id}', 'TransactionController@edit')->name('transaction.edit')->middleware('feature_control:transaction_update');
     Route::post('update/{id}', 'TransactionController@update')->name('transaction.update')->middleware('feature_control:transaction_update');
     Route::delete('delete/{id}', 'TransactionController@delete')->name('transaction.delete')->middleware('feature_control:transaction_delete');
-    
+
     Route::get('assign-driver/{id}', 'TransactionController@assignDriver')->name('transaction.assign.driver')->middleware('feature_control:transaction_assign_driver');
     Route::post('confirm', 'TransactionController@confirmRent')->name('transaction.confirm')->middleware('feature_control:confirm_transaction');
     Route::post('cancel', 'TransactionController@cancelRent')->name('transaction.cancel')->middleware('feature_control:cancel_transaction');
@@ -27,4 +27,7 @@ Route::prefix('transaction')->middleware('validate_session')->group(function() {
     Route::get('requirements', 'TransactionController@requirements')->name('transaction.requirements')->middleware('feature_control:transaction_requirements');
     Route::post('requirements', 'TransactionController@updateRequirements')->name('transaction.requirements.update')->middleware('feature_control:transaction_requirements');
     Route::get('notif', 'TransactionController@getNotif')->name('transaction.notif');
+
 });
+
+Route::post('transaction/cek-harga-sewa', 'TransactionController@cekHargaSewa');

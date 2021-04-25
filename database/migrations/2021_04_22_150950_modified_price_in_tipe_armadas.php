@@ -14,7 +14,7 @@ class ModifiedPriceInTipeArmadas extends Migration
     public function up()
     {
         DB::statement('ALTER TABLE tipe_armadas MODIFY price DOUBLE');
-        DB::statement('ALTER TABLE tipe_armadas MODIFY price12 DOUBLE NOT NULL ');
+        DB::statement('ALTER TABLE tipe_armadas MODIFY price12 DOUBLE');
     }
 
     /**
@@ -24,7 +24,7 @@ class ModifiedPriceInTipeArmadas extends Migration
      */
     public function down()
     {
-        DB::statement('ALTER TABLE tipe_armadas MODIFY price DOUBLE NOT NULL ');
-        DB::statement('ALTER TABLE tipe_armadas MODIFY price12 DOUBLE');
+        DB::statement('ALTER TABLE tipe_armadas MODIFY price DOUBLE NOT NULL');
+        DB::statement('ALTER TABLE tipe_armadas MODIFY price12 DOUBLE NOT NULL');
     }
 }

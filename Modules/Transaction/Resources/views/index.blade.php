@@ -38,7 +38,7 @@
         }
 
         .detal-trx{
-            margin-bottom:0.8rem;   
+            margin-bottom:0.8rem;
         }
     </style>
 @endsection
@@ -110,7 +110,7 @@
                         <div class="input-group">
                             <input type="number" min="0" class="form-control" name="durasi_sewa" id="durasi_sewa">
                             <div class="input-group-append">
-                                <span class="input-group-text">days</span>
+                                <span class="input-group-text">Jam</span>
                             </div>
                         </div>
                     </div>
@@ -186,7 +186,6 @@
                         {{-- <th>Pickup Date</th> --}}
                         {{-- <th>Pickup Time</th> --}}
                         <th>Durasi Sewa</th>
-                        <th>Harga Sewa</th>
                         <th>Grand Total</th>
                         <th>Alamat Customer</th>
                         <th>Status Lepas Kunci</th>
@@ -278,7 +277,7 @@
                                         <label for="">Durasi Sewa</label>
                                     </div>
                                     <div class="col-md-8">
-                                        <p>{{ $item['durasi_sewa'] }} days</p>
+                                        <p>{{ $item['durasi_sewa'] }} Jam</p>
                                     </div>
                                 </div>
                                 <div class="form-group row detal-trx">
@@ -341,14 +340,6 @@
                                 @endif
                                 <div class="form-group row detal-trx">
                                     <div class="col-md-4">
-                                        <label for="">Harga Sewa</label>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <p>{{ IDR($item['armada']['price']) }}</p>
-                                    </div>
-                                </div>
-                                <div class="form-group row detal-trx">
-                                    <div class="col-md-4">
                                         <label for="">Grand Total</label>
                                     </div>
                                     <div class="col-md-8">
@@ -367,14 +358,14 @@
                                         <div class="col-md-8" id="clocks{{$item['id']}}" style="color: rgb(36, 36, 187); font-weight:bold"></div>
                                     </div>
                                 @endif
-                                <div class="form-group row detal-trx">
+                                {{-- <div class="form-group row detal-trx">
                                     <div class="col-md-4">
                                         <label for="">Created At</label>
                                     </div>
                                     <div class="col-md-8">
                                         <p>{{ tgl_indo(explode(' ',$item['created_at'])[0] ?? []).' - '.(explode(' ',$item['created_at'])[1] ?? '') }}</p>
                                     </div>
-                                </div>
+                                </div> --}}
                                 @if ($status == 'pending')
                                     <div class="form-group row detal-trx">
                                         <div class="col-md-4">
@@ -385,6 +376,7 @@
                                         </div>
                                     </div>
                                 @endif
+                                <hr>
                                 <div class="form-group row detal-trx">
                                     <div class="col-md-4">
                                         <label for="">Pickup Date</label>
@@ -411,6 +403,7 @@
                                         </div>
                                     </div>
                                 @endif
+                                <hr>
                                 <div class="form-group row detal-trx">
                                     <div class="col-md-4">
                                         <label for="">Status</label>
@@ -437,7 +430,7 @@
                                                 <span>{{ $item['schedule_status'] }}</span>
                                             </div>
                                         @endif
-                                      
+
                                     </div>
                                 </div>
                             </div>
@@ -485,7 +478,7 @@
                         </form>
                     </div>
                 </div>
-            </div>  
+            </div>
 
             {{-- confirm transaction --}}
             <div class="modal fade" id="confirm-modal{{$item['id']}}" tabindex="-2" role="dialog" aria-hidden="true">
@@ -537,7 +530,7 @@
                         </form>
                     </div>
                 </div>
-            </div>  
+            </div>
         @endif
     @endforeach
 @endsection
@@ -586,11 +579,7 @@
                     //     }, width: '130px'
                     // },
                     {data: 'durasi_sewa', name: 'durasi_sewa', render: function (data, type, full, meta) {
-                            return data+' days';
-                        }
-                    },
-                    {data: 'harga_sewa', name: 'harga_sewa', render: function (data, type, full, meta) {
-                            return 'Rp '+number_format(data, 0, ',', '.');
+                            return data+' Jam';
                         }
                     },
                     {data: 'grand_total', name: 'grand_total', render: function (data, type, full, meta) {
@@ -755,7 +744,7 @@
                     //     }, width: '130px'
                     // },
                     {data: 'durasi_sewa', name: 'durasi_sewa', render: function (data, type, full, meta) {
-                            return data+' days';
+                            return data+' Jam';
                         }
                     },
                     {data: 'harga_sewa', name: 'harga_sewa', render: function (data, type, full, meta) {
@@ -835,13 +824,13 @@
                     $('html').removeClass('modal-open');
                 })
             });
-            
+
 
             $('#cancel-button'+id).on('click', function(e){
                 // e.stopPropagation();
                 $('#detailTrx'+id).modal('hide');
             })
-        
+
             $('#close-cancel-button'+id).on('click', function(e){
                 // e.stopPropagation();
                 $('#detailTrx'+id).modal('show');
@@ -851,7 +840,7 @@
                 // e.stopPropagation();
                 $('#detailTrx'+id).modal('hide');
             })
-        
+
             $('#close-confirm-button'+id).on('click', function(e){
                 // e.stopPropagation();
                 $('#detailTrx'+id).modal('show');
@@ -861,7 +850,7 @@
                 // e.stopPropagation();
                 $('#detailTrx'+id).modal('hide');
             })
-        
+
             $('#close-mark-button'+id).on('click', function(e){
                 // e.stopPropagation();
                 $('#detailTrx'+id).modal('show');
@@ -870,7 +859,7 @@
 
             function startTime() {
                 var today = new Date();
-               
+
                 var Y = today.getFullYear();
                 var M = bulan_indo(today.getMonth() + 1);
                 var d = today.getDate();
@@ -878,13 +867,13 @@
                 var m = today.getMinutes();
                 var s = today.getSeconds();
 
-                d = checkTime(d); 
-                h = checkTime(h); 
+                d = checkTime(d);
+                h = checkTime(h);
                 m = checkTime(m);
                 s = checkTime(s);
 
                 $('#clocks'+id).html(d + ' ' + M + ' ' + Y + ' - ' + h + ":" + m + ":" + s);
-            
+
                 var t = setTimeout(startTime, 500);
             }
 

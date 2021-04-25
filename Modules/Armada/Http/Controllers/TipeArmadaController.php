@@ -47,19 +47,11 @@ class TipeArmadaController extends Controller
             'tipe' => 'required|unique:tipe_armadas,tipe',
             'kapasitas_penumpang' => 'required',
             'tipe_kemudi' => 'required',
-            'price12' => 'required',
             'photo' => 'required|image'
         ];
 
-        if(isset($post['price-check'])){
-            // set harga sewa 24 jam required
-            $rule['price'] = 'required';
-        }
-
-        if(isset($post['is_driver_allowed'])){
-            $rule['price_driver12'] = 'required';
-            if(isset($post['price-check']))
-                $rule['price_driver'] = 'required';
+        if(empty($post['price-check']) && empty($post['price12'])){
+            $rule['price12'] = 'required';
         }
 
         $request->validate($rule);
@@ -73,7 +65,10 @@ class TipeArmadaController extends Controller
 
             if(isset($result['status']) && $result['status'] == 'success'){
                 $post['photo'] = $result['filename'];
-                $post['price12'] = str_replace(['Rp', ','], '', $post['price12']);
+
+                if(isset($post['price12'])){
+                    $post['price12'] = str_replace(['Rp', ','], '', $post['price12']);
+                }
 
                 if(isset($post['price'])){
                     $post['price'] = str_replace(['Rp', ','], '', $post['price']);
@@ -184,20 +179,8 @@ class TipeArmadaController extends Controller
             ],
             'kapasitas_penumpang' => 'required',
             'tipe_kemudi' => 'required',
-            'price12' => 'required',
             'photo' => 'image'
         ];
-
-        if(isset($post['price-check'])){
-            // set harga sewa 24 jam required
-            $rule['price'] = 'required';
-        }
-
-        if(isset($post['is_driver_allowed'])){
-            $rule['price_driver12'] = 'required';
-            if(isset($post['price-check']))
-                $rule['price_driver'] = 'required';
-        }
 
         $validator = Validator::make($post, $rule);
 
@@ -216,7 +199,11 @@ class TipeArmadaController extends Controller
                 }
             }
 
-            $post['price12'] = str_replace(['Rp', ','], '', $post['price12']);
+            if(isset($post['price12'])){
+                $post['price12'] = str_replace(['Rp', ','], '', $post['price12']);
+            }else{
+                $post['price12'] = null;
+            }
 
             if(isset($post['price'])){
                 $post['price'] = str_replace(['Rp', ','], '', $post['price']);

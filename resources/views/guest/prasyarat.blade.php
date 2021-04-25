@@ -29,8 +29,8 @@
     @yield('styles')
 
     <style>
-        select.decorated option:hover {
-            box-shadow: 0 0 10px 100px red inset;
+        select:focus > option:hover {
+            background: #FF5C00 !important;
         }
     </style>
 </head>
@@ -71,81 +71,16 @@
     </nav>
 
     <div class="container-fluid" style="padding-top: 15%; padding-left:10%; padding-right:10%">
-        <h3 style="color: #000000; font-family:Poppins; font-size:30px; font-weight:bold">Katalog</h3>
-        <p style="color: #FF4D00; font-family:Poppins; font-size:20px; font-weight:bold">Pilih dan nikmati liburan menyenangkanmu</p>
-
-        <form method="get" action="" class="row" style="margin-bottom: 6%">
-            <div class="form-group col-md-3">
-                <input id="my-input" class="form-control" type="text" name="keyword" placeholder="Cari Mobil">
-            </div>
-            <div class="form-group col-md-2">
-                <select id="my-select" class="form-control decorated" name="tipe_armada">
-                    <option>All</option>
-                    @foreach ($armada as $item)
-                        <option value="{{$item['id_tipe_armada']}}">{{$item['tipe_armada']['tipe']}}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="form-group col-md-1">
-                <button type="submit" class="btn btn-primary" style="background-color:#FF4D00; border:none">
-                    <span class="la la-search"></span>
-                </button>
-            </div>
-        </form>
-
+        <h3 style="color: #000000; font-family:Poppins; font-size:30px; font-weight:bold; text-align:center">Selamat, Anda Berhasil Melakukan Booking Dengan No. Faktur <span style="color: #FF4D00;">{{$no_faktur}}</span></h3>
+        <br>
         <div class="row">
-
-            @foreach ($armada as $key => $item)
-                <div class="col-md-5" style="margin-bottom:6%;">
-                    <div class="card" style="box-shadow: 4px 4px 4px #FF4D00;">
-                        <div class="card-body row">
-                            <div class="col-md-8">
-                                <div class="row" style="margin-top: 7%">
-                                    <p class="card-title" style="font-family: Roboto; font-size:20px; font-weight: bold; color:#333333; margin: auto; width: 100%; text-align:center">
-                                        {{$item['tipe_armada']['tipe']}}
-                                    </p>
-                                </div>
-                                <div class="row" style="margin-top: 7%">
-                                    <div style="margin: auto; width:80%; height:100px">
-                                        <img src="{{asset($item['tipe_armada']['photo'])}}" alt="{{$item['tipe_armada']['photo']}}" width="100%">
-                                    </div>
-                                </div>
-                                <div class="row" style="margin-top: 7%">
-                                    <p class="card-text col-md-12" style="margin-bottom: 0; padding-left:15%">Start From</p>
-                                    <p class="card-text col-md-12" style="font-family: Roboto; font-size:20px; font-weight: bold; color:#000; padding-left:15%">
-                                        @if(!empty($item['tipe_armada']['price12']))
-                                            {{ 'Rp.'.number_format($item['tipe_armada']['price12'],0,',','.') }}
-                                        @else
-                                            {{ 'Rp.'.number_format($item['tipe_armada']['price'],0,',','.') }}
-                                        @endif
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="col-md-4" style="position: relative">
-                                <div class="row" style="position: absolute; bottom:0;">
-                                    <div class="col-md-12">
-                                        <div class="row" style="margin-bottom: 9%">
-                                            <div class="col-md-2"><img src="{{asset('image/capacity.svg')}}" alt=""></div>
-                                            <div class="col-md-10" style="font-family:'Roboto'; font-size:12px; color:#333">{{$item['tipe_armada']['kapasitas_penumpang']}} Orang</div>
-                                        </div>
-                                        <div class="row" style="margin-bottom: 15%">
-                                            <div class="col-md-2"><img src="{{asset('image/manual.svg')}}" alt=""></div>
-                                            <div class="col-md-10" style="font-family:'Roboto'; font-size:12px; color:#333">{{$item['tipe_armada']['tipe_kemudi']}}</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <a class="btn-booking" href="{{url('booking?id_tipe_armada='.$item['tipe_armada']['id'])}}" role="button" style="width: 85%">BOOK</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            <div class="col-md-12">
+                <div class="card" style="color: black">
+                    <div class="card-body">
+                        @php echo html_entity_decode($prasyarat) @endphp
                     </div>
                 </div>
-                @if($key % 2 == 0)
-                    <div class="col-md-2"></div>
-                @endif
-            @endforeach
-
+            </div>
         </div>
     </div>
 

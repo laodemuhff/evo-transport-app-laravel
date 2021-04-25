@@ -102,7 +102,12 @@
                                 </div>
                             </label>
                             <div class="col-8">
-                                <input class="form-control" type="text" name="price12" id="price12" placeholder="Tarif 12 Jam" autocomplete="off" min="0" value="Rp {{ number_format($tipe_armada['price12'],0,'.',',') }}" required>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="my-addon">Lepas Kunci</span>
+                                    </div>
+                                    <input class="form-control" type="text" name="price12" id="price12" placeholder="Tarif 12 Jam" autocomplete="off" min="0" value="Rp {{ number_format($tipe_armada['price12'],0,'.',',') }}">
+                                </div>
                             </div>
                             <div class="col-md-4"></div>
                             <div class="col-md-8 mt-2">
@@ -110,7 +115,12 @@
                             </div>
                             <div class="col-md-4"></div>
                             <div class="col-md-8 mt-2">
-                                <input class="form-control" type="text" name="price" id="price" placeholder="Tarif 24 Jam" autocomplete="off" min="0" value="@if(isset($tipe_armada['price'])) Rp {{number_format($tipe_armada['price'],0,'.',',')}} @endif" @if(isset($tipe_armada['price'])) required @else  disabled style="display: none" @endif>
+                                <div class="input-group" id="price-box">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="my-addon">Lepas Kunci</span>
+                                    </div>
+                                    <input class="form-control" type="text" name="price" id="price" placeholder="Tarif 24 Jam" autocomplete="off" min="0" value="@if(isset($tipe_armada['price'])) Rp {{number_format($tipe_armada['price'],0,'.',',')}} @endif" @if(isset($tipe_armada['price'])) required @else  disabled style="display: none" @endif>
+                                </div>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -151,12 +161,22 @@
                         </div>
                         <div class="form-group row" style="display: none" id="price_driver12_box">
                             <div class="col-8 mt-2">
-                                <input class="form-control" type="text" name="price_driver12" id="price_driver12" placeholder="Tarif 12 Jam dengan Supir" autocomplete="off" min="0" value="Rp {{number_format($tipe_armada['price_driver12'],0,'.',',')}}" disabled>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="my-addon">With Driver</span>
+                                    </div>
+                                    <input class="form-control" type="text" name="price_driver12" id="price_driver12" placeholder="Tarif 12 Jam dengan Supir" autocomplete="off" min="0" value="Rp {{number_format($tipe_armada['price_driver12'],0,'.',',')}}" disabled>
+                                </div>
                             </div>
                         </div>
                         <div class="form-group row" style="display: none" id="price_driver_box">
                             <div class="col-8 mt-2">
-                                <input class="form-control" type="text" name="price_driver" id="price_driver" placeholder="Tarif 24 Jam dengan Supir" autocomplete="off" min="0" value="Rp {{number_format($tipe_armada['price_driver'],0,'.',',')}}" disabled>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="my-addon">With Driver</span>
+                                    </div>
+                                    <input class="form-control" type="text" name="price_driver" id="price_driver" placeholder="Tarif 24 Jam dengan Supir" autocomplete="off" min="0" value="Rp {{number_format($tipe_armada['price_driver'],0,'.',',')}}" disabled>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -201,7 +221,7 @@
             if($(this).is(':checked')){
                 $("#price").prop('disabled', false);
                 $("#price").prop('required', true);
-                $("#price").slideDown(150);
+                $("#price-box").slideDown(150);
 
                 if($('#is_driver_allowed').is(':checked')){
                     $('#price_driver').prop('disabled', false)
@@ -211,7 +231,7 @@
             }else{
                 $("#price").prop('disabled', true);
                 $("#price").prop('required', false);
-                $("#price").slideUp(150);
+                $("#price-box").slideUp(150);
 
                 $('#price_driver').prop('disabled', true)
                 $("#price_driver").prop('required', false);
@@ -228,7 +248,7 @@
                 if($('#price-check').is(":checked")){
                     $('#price').prop('disabled', false)
                     $('#price').prop('required', true)
-                    $("#price").slideDown(150);
+                    $("#price-box").slideDown(150);
 
                     $('#price_driver').prop('disabled', false)
                     $('#price_driver').prop('required', true)

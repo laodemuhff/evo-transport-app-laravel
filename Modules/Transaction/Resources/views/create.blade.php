@@ -143,10 +143,10 @@
                                 </div>
                             </label>
                             <div class="col-8">
-                                <select class="form-control" name="tipe_armada" id="tipe_armada" data-current-price = '0' required>
+                                <select class="form-control" name="tipe_armada" id="tipe_armada"  required>
                                     <option value="">Pilih Tipe Armada</option>
                                     @foreach ($tipe_armada as $key => $item)
-                                        <option value="{{ $item['tipe'] }}" @if(old('tipe_armada') && old('tipe_armada') == $item['tipe']) selected @endif data-price="{{$item['price']}}" data-index={{$key}}>{{ ucfirst($item['tipe']) }}</option>
+                                        <option value="{{ $item['id'] }}" @if(old('tipe_armada') && old('tipe_armada') == $item['id']) selected @endif data-index={{$key}} data-is-driver-allowed="{{$item['is_driver_allowed']}}">{{ ucfirst($item['tipe']) }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -213,14 +213,13 @@
                                 </div>
                             </label>
                             <div class="col-8">
-                                <select name="status_lepas_kunci" id="status_lepas_kunci" class="form-control" data-current-tambahan = '{{ old('status_lepas_kunci') && old('status_lepas_kunci') == 'shipped off key' ? $price_lepas_kunci_dikirim :  0}}' disabled>
-                                    <option value="">Pilih Status Lepas Kunci</option>
+                                <select name="status_lepas_kunci" id="status_lepas_kunci" class="form-control" disabled>
                                     @foreach ($status_lepas_kunci as $item)
                                         <option value="{{$item}}" @if(old('status_lepas_kunci') == $item) selected @endif>
                                             @if ($item == 'off key')
-                                                Lepas Kunci Ambil di tempat
+                                                Lepas Kunci
                                             @else
-                                                Lepas Kunci Dikirimkan
+                                                Mobil + Driver
                                             @endif
                                         </option>
                                     @endforeach
@@ -237,10 +236,15 @@
                                 </div>
                             </label>
                             <div class="col-8">
-                                <select name="status_pengambilan" id="status_pengambilan" class="form-control" data-current-tambahan = '{{ old('status_pengambilan') && old('status_pengambilan') == 'send out car' ? $price_pengambilan_dikirim :  0}}' disabled>
-                                    <option value="">Pilih Status Pengambilan</option>
+                                <select name="status_pengambilan" id="status_pengambilan" class="form-control" disabled>
                                     @foreach ($status_pengambilan as $item)
-                                        <option value="{{$item}}" @if(old('status_pengambilan') == $item) selected @endif>{{$item}}</option>
+                                        <option value="{{$item}}" @if(old('status_pengambilan') == $item) selected @endif>
+                                            @if ($item == 'taken in place')
+                                                Ambil di Tempat
+                                            @else
+                                                Mobil Dikirimkan
+                                            @endif
+                                        </option>
                                     @endforeach
                                 </select>
                                 @error('status_pengambilan')
@@ -248,17 +252,12 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="form-group row" style="display: none" id="form-group-grand-total">
+                        <div class="form-group row" id="cek-harga-sewa-btn-form" style="display: none">
                             <label class="col-4 col-form-label">
-                                <div class="pull-right">
-                                    Grand Total <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Grand Total"></i>
-                                </div>
+
                             </label>
                             <div class="col-8">
-                                <input type="text" min="0" class="form-control" name="grand_total" id="grand_total" data-total="{{ old('grand_total') ? str_replace([' ', 'Rp', 'Rp.', '.', ','], '', old('grand_total')) : 0 }}" value="{{ old('grand_total') ?? 'Rp 0' }}" readonly disabled>
-                                @error('grand_total')
-                                    <div class="my-alert alert-danger">! {{ $message }}</div>
-                                @enderror
+                                <a href="#" type="button" data-toggle="modal" data-target="#cek-grand-total" class="btn btn-primary" id="cek-harga-sewa-btn"><i class="flaticon-price-tag"></i>Cek Harga Sewa</a>
                             </div>
                         </div>
                     </div>
@@ -275,6 +274,50 @@
             </div>
         </div>
     </form>
+
+    <div id="cek-grand-total" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="my-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="my-modal-title">Grand Total</h5>
+                    <button class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h3 id="grand-total-modal"></h3>
+                    <hr>
+                    <p>Detail : </p>
+                    <table class="table">
+                        <tr>
+                            <td>Status Lepas Kunci</td>
+                            <td id="status-lepas-kunci-modal"></td>
+                        </tr>
+                        <tr>
+                            <td>Status Pengambilan</td>
+                            <td id="status-pengambilan-modal"></td>
+                        </tr>
+                        <tr>
+                            <td>Durasi</td>
+                            <td id="durasi-modal"></td>
+                        </tr>
+                        <tr>
+                            <td>Harga per Hari</td>
+                            <td id="price24-modal"></td>
+                        </tr>
+                        <tr>
+                            <td>Harga per 12 Jam</td>
+                            <td id="price12-modal"></td>
+                        </tr>
+                        <tr>
+                            <td>Penambahan Harga</td>
+                            <td id="penambahan-harga-modal"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -296,11 +339,6 @@
                 $('#status_lepas_kunci').trigger('change')
                 $('#status_pengambilan').trigger('change')
                 $('#durasi_sewa').trigger('keyup')
-
-                console.log($('#armada').data('current-price'))
-                console.log($('#grand_total').data('total'))
-                console.log($('#status_lepas_kunci').data('current-tambahan'))
-                console.log($('#status_pengambilan').data('current-tambahan'))
             }
         })
 
@@ -319,19 +357,15 @@
             $('#status_pengambilan').prop('disabled', true)
             $('#status_lepas_kunci').prop('selectedIndex', 0)
             $('#status_pengambilan').prop('selectedIndex', 0)
-            $('#grand_total').prop('disabled', true)
-            $('#grand_total').data('total', 0)
-            $('#grand_total').val('Rp 0')
 
             $('#status_lepas_kunci').data('current-tambahan',0)
             $('#status_pengambilan').data('current-tambahan',0)
-            $('#armada').data('current-price',0)
 
             $('#form-group-durasi-sewa').slideUp(200)
             $('#form-group-pickup-date').slideUp(200)
             $('#form-group-status-lepas-kunci').slideUp(200)
             $('#form-group-status-pengambilan').slideUp(200)
-            $('#form-group-grand-total').slideUp(200)
+            $('#cek-harga-sewa-btn-form').slideUp(200);
         }
 
         function enabledCertainInput(){
@@ -340,33 +374,24 @@
             $('#pickup_date').prop('disabled', false)
             $('#status_lepas_kunci').prop('disabled', false)
             $('#status_pengambilan').prop('disabled', false)
-            $('#grand_total').prop('disabled', false)
 
             $('#form-group-durasi-sewa').slideDown(200)
             $('#form-group-pickup-date').slideDown(200)
             $('#form-group-status-lepas-kunci').slideDown(200)
             $('#form-group-status-pengambilan').slideDown(200)
-            $('#form-group-grand-total').slideDown(200)
+            $('#cek-harga-sewa-btn-form').slideDown(200);
         }
 
 
         $('#tipe_armada').on('change', function(e){
             var index = $('#tipe_armada option:selected').data('index');
             var value = $('#tipe_armada option:selected').val();
-            var current_price = $(this).data('current-price')
-            var current_grand_total = $('#grand_total').data('total')
-            var price = $('#tipe_armada option:selected').data('price');
-            var total = (parseInt(current_grand_total) + parseInt(price)) - parseInt(current_price)
 
             if(value != ''){
 
                 var data = @json($tipe_armada);
-                var old_tipe_armada = {!! old('tipe_armada') !!}
-
-                // dari armada
-                $(this).data('current-price', price)
-                $('#grand_total').val('Rp '+number_format(total,0,',','.'))
-                $('#grand_total').data('total',total)
+                var is_driver_allowed =$('#tipe_armada option:selected').data('is-driver-allowed');
+                var status_lepas_kunci = {!! json_encode($status_lepas_kunci) !!};
 
                 // origin
                 $('#form-group-armada').slideDown(200);
@@ -375,8 +400,41 @@
                 $('#armada').append('<option value="">Pilih Armada</option>')
 
                 $.each(data[index]['armada'], function(index, value){
-                    $('#armada').append("<option value="+value['id']+">"+value['kode_armada']+"</option>")
+                    var old_id_armada = "{!! old('id_armada') !!}"
+
+                    if(old_id_armada !== undefined && old_id_armada == value['id'])
+                        $('#armada').append("<option value="+value['id']+" selected>"+value['kode_armada']+"</option>")
+                    else
+                        $('#armada').append("<option value="+value['id']+" >"+value['kode_armada']+"</option>")
                 });
+
+                var old_status_lepas_kunci = "{!! old('status_lepas_kunci') !!}"
+
+                if(!is_driver_allowed){
+                    $('#status_lepas_kunci').html('')
+                    $.each(status_lepas_kunci, function(i, val){
+                        if(val != 'with driver'){
+                            $('#status_lepas_kunci').append("<option value='"+val+"'>Lepas Kunci</option>");
+                        }
+                    });
+                }else{
+                    $('#status_lepas_kunci').html('')
+                    $.each(status_lepas_kunci, function(i, val){
+                        if(val == 'off key'){
+                            item_name = 'Lepas Kunci';
+                        }else{
+                            item_name = 'Mobil + Driver'
+                        }
+
+                        if (old_status_lepas_kunci !== undefined && old_status_lepas_kunci == val) {
+                            $('#status_lepas_kunci').append("<option value='"+val+"' selected>"+item_name+"</option>");
+                        } else {
+                            $('#status_lepas_kunci').append("<option value='"+val+"'>"+item_name+"</option>");
+                        }
+
+                    });
+                }
+
 
             }else{
                 disabledCertainInput();
@@ -398,53 +456,6 @@
 
         })
 
-        $('#status_lepas_kunci').on('change', function(e){
-            var current_tambahan = $(this).data('current-tambahan')
-            var current_grand_total = $('#grand_total').data('total')
-            var value = $('#status_lepas_kunci option:selected').val();
-            var tambahan_harga = 0
-
-            if(value == 'shipped off key'){
-                tambahan_harga = {!! $price_lepas_kunci_dikirim !!}
-            }
-
-            var total = (parseInt(current_grand_total) + parseInt(tambahan_harga)) - parseInt(current_tambahan)
-            $(this).data('current-tambahan', tambahan_harga)
-            $('#grand_total').val('Rp '+number_format(total,0,',','.'))
-            $('#grand_total').data('total', total)
-        })
-
-        $('#status_pengambilan').on('change', function(e){
-            var current_tambahan = $(this).data('current-tambahan')
-            var current_grand_total = $('#grand_total').data('total')
-            var value = $('#status_pengambilan option:selected').val();
-            var tambahan_harga = 0
-
-            if(value == 'send out car'){
-                tambahan_harga = {!! $price_pengambilan_dikirim !!}
-            }
-
-            var total = (parseInt(current_grand_total) + parseInt(tambahan_harga)) - parseInt(current_tambahan)
-            $(this).data('current-tambahan', tambahan_harga)
-            $('#grand_total').val('Rp '+number_format(total,0,',','.'))
-            $('#grand_total').data('total', total)
-        })
-
-        // $('#durasi_sewa').on('keyup', function(e){
-        //     var hours = $(this).val()
-        //     var current_price = $('#armada').data('current-price')
-        //     var current_tambahan_lepas_kunci = $('#status_lepas_kunci').data('current-tambahan')
-        //     var current_tambahan_pengambilan = $('#status_pengambilan').data('current-tambahan')
-
-        //     var total = (parseInt(hours) * parseInt(current_price)) + (parseInt(current_tambahan_lepas_kunci) + parseInt(current_tambahan_pengambilan))
-
-        //     $('#grand_total').val('Rp '+number_format(total,0,',','.'))
-        //     $('#grand_total').data('total', total)
-
-        //     $(this).val(parseInt(hours) + 11)
-
-        // })
-
         $('#sub_durasi_sewa').on('click', function(e){
             let hours = $('#durasi_sewa').val()
 
@@ -462,6 +473,40 @@
                 $('#durasi_sewa').val(parseInt(hours) + 12);
             }
         });
+
+        $('#cek-harga-sewa-btn').click(function(){
+            let url = $("meta[name='base_url']").attr('content');
+            let _token = $('meta[name="csrf-token"]').attr('content');
+            let id_tipe_armada = parseInt($('#tipe_armada option:selected').val());
+            let durasi = parseInt($ ('#durasi_sewa').val())
+            let status_pengambilan = $('#status_pengambilan option:selected').val()
+            let status_lepas_kunci = $('#status_lepas_kunci option:selected').val()
+
+            $.ajax({
+                url : url+"/transaction/cek-harga-sewa",
+                dataType : "json",
+                method: "POST",
+                data : {
+                    _token : _token,
+                    id_tipe_armada : id_tipe_armada,
+                    durasi : durasi,
+                    status_pengambilan : status_pengambilan,
+                    status_lepas_kunci : status_lepas_kunci,
+                }
+            }).done(function(data){
+                console.log('success',data)
+                $('#grand-total-modal').html(data.grand_total);
+                $('#status-lepas-kunci-modal').html(data.status_lepas_kunci);
+                $('#status-pengambilan-modal').html(data.status_pengambilan);
+                $('#price12-modal').html(data.price12);
+                $('#price24-modal').html(data.price24);
+                $('#penambahan-harga-modal').html(data.penambahan_harga);
+                $('#durasi-modal').html(data.durasi);
+
+            }).fail(function(data){
+                console.log('fail', data)
+            })
+        })
 
     </script>
 @endsection

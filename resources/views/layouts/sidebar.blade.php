@@ -260,11 +260,11 @@
         </li>
     @endif
 
-    <li class="kt-menu__item {{ Request::route()->getName() == 'setting.wordings' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
+    {{-- <li class="kt-menu__item {{ Request::route()->getName() == 'setting.wordings' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
         <a href="{{route('setting.wordings')}}" class="kt-menu__link ">
             <i class="kt-menu__link-icon la la-font" style="font-size: 1.6em"></i><span class="kt-menu__link-text">App Wordings</span>
         </a>
-    </li>
+    </li> --}}
 
 @endif
 {{-- END::Route SETTING --}}

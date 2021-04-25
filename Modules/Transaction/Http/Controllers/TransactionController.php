@@ -15,6 +15,7 @@ use DB;
 use Validator;
 use Illuminate\Validation\Rule;
 use Auth;
+use Illuminate\Support\Facades\Crypt;
 
 class TransactionController extends Controller
 {
@@ -39,7 +40,7 @@ class TransactionController extends Controller
     public function table(Request $request, $status){
         $post = $request->all();
 
-        $data = Transaction::select('transactions.*', 'armadas.kode_armada as kode_armada', 'armadas.price as harga_sewa', 'tipe_armadas.tipe as tipe_armada')
+        $data = Transaction::select('transactions.*', 'armadas.kode_armada as kode_armada', 'tipe_armadas.tipe as tipe_armada')
                             ->join('armadas', 'armadas.id', 'transactions.id_armada')
                             ->join('tipe_armadas', 'tipe_armadas.id', 'armadas.id_tipe_armada')
                             ->where('status_transaksi', str_replace('_',' ',$status))
@@ -102,9 +103,6 @@ class TransactionController extends Controller
             ->addColumn('tipe_armada', function($data){
                 return $data['tipe_armada'];
             })
-            ->addColumn('harga_sewa', function($data){
-                return $data['harga_sewa'];
-            })
             ->addIndexColumn()
             ->rawColumns(['action'])
             ->make(true);
@@ -124,7 +122,6 @@ class TransactionController extends Controller
         // }
 
         $data['price_pengambilan_dikirim'] = Setting::where('key', 'tambahan_harga_pengambilan_dikirim')->first()['value'] ?? 0;
-        $data['price_lepas_kunci_dikirim'] = Setting::where('key', 'tambahan_harga_lepas_kunci_dikirim')->first()['value'] ?? 0;
         $data['status_lepas_kunci'] = Transaction::getEnumValues('status_lepas_kunci');
         $data['status_pengambilan'] = Transaction::getEnumValues('status_pengambilan');
         // dd($data);
@@ -136,21 +133,30 @@ class TransactionController extends Controller
         $post = $request->except('_token');
 
         // dd($post);
-
-        $post['grand_total'] = str_replace(['Rp', 'Rp.', ' ', '.', ','], '', $post['grand_total']);
         $post['pickup_date'] = Self::format_date($post['pickup_date']);
 
         $rules = [
             'nama_customer'      => [ 'required' ],
             'alamat_customer'    => [ 'required' ],
             'no_hp_customer'     => [ 'required', 'unique:transactions,no_hp_customer', 'phone_number_indo', 'min:11', 'max:13'],
-            'id_armada'          => [ 'required', 'numeric' ],
             'durasi_sewa'        => [ 'required', 'numeric' ],
             'pickup_date'        => [ 'required', 'date' ],
-            'status_lepas_kunci' => [ Rule::in([null, 'off key', 'shipped off key']) ],
+            'status_lepas_kunci' => [ Rule::in([null, 'off key', 'with driver']) ],
             'status_pengambilan' => [ Rule::in([null, 'taken in place', 'send out car']) ],
-            'grand_total'        => [ 'required','numeric' ],
         ];
+
+        if(!empty($post['id_armada'])){
+            $rules['id_armada'] = [ 'required', 'numeric' ];
+        }else{
+            $cek_armada = Armada::where('id_tipe_armada', $post['tipe_armada'])->where('status_armada', 'ready')->first();
+
+            if($cek_armada){
+                $post['id_armada'] = $cek_armada['id'];
+            }else{
+                $request->flash();
+                return redirect()->back()->withErrors('Out of Armadas');
+            }
+        }
 
         $messages = [
             'no_hp_customer.phone_number_indo' => ':attribute must begin with 08 or 62',
@@ -166,16 +172,43 @@ class TransactionController extends Controller
         }
 
         try {
-            unset($post['tipe_armada']);
             $last_order = Transaction::orderBy('created_at', 'desc')->first()['nomor_faktur'] ?? null;
             $post['nomor_faktur'] = MyHelper::generateNomorFaktur($last_order);
             $post['status_transaksi'] = 'pending';
-            $post['return_date'] = date('Y-m-d H:i:s', strtotime('+'.$post['durasi_sewa'].' days', strtotime($post['pickup_date'])));
+            $post['return_date'] = date('Y-m-d H:i:s', strtotime('+'.$post['durasi_sewa'].' hours', strtotime($post['pickup_date'])));
             // dd($post);
+
+            $request_cek_harga = new \Illuminate\Http\Request();
+
+            $request_cek_harga->replace([
+                'id_tipe_armada' => $post['tipe_armada'],
+                'durasi' => $post['durasi_sewa'],
+                'status_pengambilan' => $post['status_pengambilan'],
+                'status_lepas_kunci' => $post['status_lepas_kunci']
+            ]);
+
+            $post['grand_total'] = json_decode(json_encode(Self::cekHargaSewa($request_cek_harga)), true)['original']['grand_total_real'] ?? null;
+
+            if(empty($post['grand_total'])){
+                $request->flash();
+                return redirect()->back()->withErrors('create transaction failed');
+            }
+
+            unset($post['tipe_armada']);
             $store_transaction = Transaction::create($post);
 
             if($store_transaction){
+
+                Armada::where('id', $post['id_armada'])->update([
+                    'status_armada' => 'not ready'
+                ]);
+
                 DB::commit();
+
+                if(!empty($post['guest_booking'])){
+                    return redirect('prasyarat?no_faktur='.Crypt::encryptString($post['nomor_faktur']))->with('success', ['Success create transaction']);
+                }
+
                 return redirect()->back()->with('success',['Success create transaction']);
 
             }else{
@@ -191,55 +224,66 @@ class TransactionController extends Controller
 
     }
 
-    // public function edit($id){
-    //     $id = decSlug($id);
-    //     $armada = Armada::where('id', $id)->first();
+    public static function cekHargaSewa(Request $request){
+        $id_tipe_armada  = $request->id_tipe_armada;
+        $durasi = $request->durasi;
+        $status_pengambilan = $request->status_pengambilan;
+        $status_lepas_kunci = $request->status_lepas_kunci;
 
-    //     if ($armada) {
-    //         $data['armada'] = $armada;
-    //         $data['tipe_armada'] = TipeArmada::all()->toArray();
-    //         $data['status_armada'] = Armada::getEnumValues('status_armada');
-    //         $data['status_driver'] = Armada::getEnumValues('status_driver');
-    //     }
+        $total = 0;
 
-    //     return view('armada::edit', $data);
-    // }
+        $tipe_armada = TipeArmada::find($id_tipe_armada);
 
-    // public function update(Request $request, $id){
-    //     DB::beginTransaction();
-    //     $post = $request->except("_token");
+        if($durasi % 24 == 0){
+            $days = $durasi / 24;
+            $half_days = 0;
+        }
+        else{
+            $days = floor($durasi / 24);
+            $half_days = 1;
+        }
 
-    //     $id = decSlug($id);
+        if($status_lepas_kunci == 'with driver'){
+            $price12 = $tipe_armada['price_driver12'];
+            $price24 = $tipe_armada['price_driver'];
+        }else{
+            $price12 = $tipe_armada['price12'];
+            $price24 = $tipe_armada['price'];
+        }
 
-    //     try {
-    //         if(isset($post['photo'])){
-    //             $result = MyHelper::uploadImagePublic('\image\armada\\');
-    //         }else{
-    //             $result['status'] = 'success';
-    //         }
+        $grand_total = ($price24 * $days) + ($price12 * $half_days);
 
-    //         if(isset($result['status']) && $result['status'] == 'success'){
-    //             if(isset($post['photo'])){
-    //                 $post['photo'] = asset(str_replace('\\', '/', $result['filename']));
-    //             }
-    //             $post['price'] = str_replace(['Rp', ','], '', $post['price']);
+        $tambahan_pengiriman_mobil = 0;
+        if($status_pengambilan == 'send out car'){
+            $tambahan_pengiriman_mobil = Setting::where('key', 'tambahan_harga_pengambilan_dikirim')->first()['value'] ?? 0;
+            $grand_total += $tambahan_pengiriman_mobil;
+        }
 
-    //             $armada = Armada::where('id',$id)->update($post);
+        $durasi = '';
 
-    //             DB::commit();
-    //             return redirect()->back()->with('success',['Success update armada']);
-    //         }else{
-    //             DB::rollback();
+        if($days > 0)
+            $durasi .= $days.' Days';
 
-    //             if(isset($result['message'])) return redirect()->back()->withErrors($result['message']);
+        if($half_days > 0){
+            if($days > 0)
+                $durasi .= ' And ';
 
-    //             return redirect()->back()->withErrors('update armada failed');
-    //         }
-    //     } catch (\Throwable $th) {
-    //         DB::rollback();
-    //         return redirect()->back()->withErrors('Galat : '.$th->getMessage());
-    //     }
-    // }
+            $durasi .= '12 Hour';
+        }
+
+        $response = [
+            'grand_total_real' => $grand_total,
+            'grand_total' => 'Rp '.number_format($grand_total,0,',','.'),
+            'price12' => 'Rp '.number_format($price12,0,',','.').'<b> x '.$half_days.'</b>',
+            'price24' => 'Rp '.number_format($price24,0,',','.').'<b> x '.$days.'</b>',
+            'durasi' => $durasi,
+            'status_lepas_kunci' => $status_lepas_kunci == 'off key' ? 'Lepas Kunci' : 'Mobil + Driver',
+            'status_pengambilan' => $status_pengambilan == 'taken in place' ? 'Ambil di Tempat' : 'Mobil Dikirimakn',
+            'penambahan_harga' =>  'Rp '.number_format($tambahan_pengiriman_mobil,0,',','.')
+        ];
+
+        return response()->json($response);
+    }
 
     public function delete($id){
         $id = decSlug($id);
@@ -260,11 +304,17 @@ class TransactionController extends Controller
     public function cancelRent(Request $request){
         $post = $request->except('_token');
 
+        $transaction = Transaction::where('id', $post['id']);
+
         $post['status_transaksi'] = 'cancelled';
         $post['cancelled_by'] = Auth::user()->email;
-        $update = Transaction::where('id', $post['id'])->update($post);
+        $update = $transaction->update($post);
 
         if($update){
+            $transaction = $transaction->first();
+            Armada::where('id', $transaction['id_armada'])->update([
+                'status_armada' => 'ready'
+            ]);
             return redirect('transaction/list/cancelled')->with('success',['Transaction is successfully cancelled']);
         }else{
             return redirect()->back()->withErrors('Failed to cancel transaction');
@@ -274,11 +324,17 @@ class TransactionController extends Controller
     public function successRent(Request $request){
         $post = $request->except('_token');
 
+        $transaction = Transaction::where('id', $post['id']);
+
         $post['status_transaksi'] = 'success';
         $post['customer_return_date'] = date('Y-m-d H:i:s');
-        $update = Transaction::where('id', $post['id'])->update($post);
+        $update = $transaction->update($post);
 
         if($update){
+            $transaction = $transaction->first();
+            Armada::where('id', $transaction['id_armada'])->update([
+                'status_armada' => 'ready'
+            ]);
             return redirect('transaction/list/success')->with('success',['Transaction is successfully mark as returned']);
         }else{
             return redirect()->back()->withErrors('Failed to mark transaction as returned');

@@ -33,8 +33,12 @@
             background: #FF5C00 !important;
         }
 
-        .booking-btn:hover{
+        #booking-btn:hover{
             background-color: #D44911 !important;
+        }
+
+        #cek-harga-sewa-btn:hover{
+            cursor: pointer;
         }
     </style>
 </head>
@@ -93,6 +97,7 @@
         </div>
 
         <form action="{{route('transaction.store')}}" method="POST" enctype="multipart/form-data" style="margin-top: 6%">
+            <input type="hidden" name="guest_booking" value="{{true}}">
             @csrf
                 <div class="row">
                     {{-- Input field --}}
@@ -148,41 +153,36 @@
                                 <option value="">Pilih Tipe Armada</option>
                                 @foreach ($tipe_armada as $key => $item)
                                     @if (!empty($item))
-                                        <option value="{{ $key }}" @if(old('tipe_armada') && old('tipe_armada') == $key) selected @endif>{{ ucfirst($key) }}</option>
+                                        @if (!empty($cat_id_tipe_armada))
+                                            <option value="{{ $item[0]['id_tipe_armada'] }}" @if($cat_id_tipe_armada == $item[0]['id_tipe_armada']) selected @endif data-is-driver-allowed="{{$item[0]['is_driver_allowed']}}">{{ ucfirst($key) }}</option>
+                                        @else
+                                            <option value="{{ $item[0]['id_tipe_armada'] }}" @if(old('tipe_armada') && old('tipe_armada') == $item[0]['id_tipe_armada']) selected @endif data-is-driver-allowed="{{$item[0]['is_driver_allowed']}}">{{ ucfirst($key) }}</option>
+                                        @endif
                                     @endif
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group row" style="display: none" id="form-group-armada">
+                        <div class="form-group row" @if (empty($cat_id_tipe_armada)) style="display: none" @endif id="form-group-durasi-sewa">
                             <label class="col-form-label">
                                 <div class="pull-right" style="color:black; font-size:15px;">
-                                    Armada <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Armada"></i>
+                                    Durasi Sewa <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Durasi Sewa (Jam)"></i>
                                 </div>
                             </label>
-                            <select class="form-control" name="id_armada" id="armada" data-current-price = '0' required disabled>
-                                {{-- generate armada --}}
-                            </select>
-                            @error('id_armada')
-                                <div class="my-alert alert-danger">! {{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="form-group row" style="display: none" id="form-group-durasi-sewa">
-                            <label class="col-form-label">
-                                <div class="pull-right" style="color:black; font-size:15px;">
-                                    Durasi Sewa <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Durasi Sewa (hari)"></i>
-                                </div>
-                            </label>
-                            <div class="input-group">
+
+                            <div class="input-group" id="durasi_sewa_box">
                                 <div class="input-group-prepend">
-                                    <a class="btn btn-secondary">Days</a>
+                                    <a class="btn btn-danger" type="button" style="color: white; font-weight:bolder" id="sub_durasi_sewa">-</a>
                                 </div>
-                                <input class="form-control" type="number" min="1" name="durasi_sewa" id="durasi_sewa" autocomplete="off" value="{{ old('durasi_sewa') ?? 1 }}" placeholder="e.g 2" required disabled>
+                                <input class="form-control" type="text" name="durasi_sewa" id="durasi_sewa" autocomplete="off" value="{{ old('durasi_sewa') ?? 12 }}" required @if(empty($cat_id_tipe_armada)) disabled @endif style="text-align:center; font-weight:bold">
+                                <div class="input-group-prepend">
+                                    <a class="btn btn-primary" type="button" style="color: white; font-weight:bolder" id="add_durasi_sewa">+</a>
+                                </div>
                             </div>
                             @error('durasi_sewa')
                                 <div class="my-alert alert-danger">! {{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="form-group row" style="display: none" id="form-group-pickup-date">
+                        <div class="form-group row" @if (empty($cat_id_tipe_armada)) style="display: none" @endif id="form-group-pickup-date">
                             <label class="col-form-label">
                                 <div class="pull-right" style="color:black; font-size:15px;">
                                     Pickup Date <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Pickup Date"></i>
@@ -190,7 +190,7 @@
                             </label>
                             {{-- <input class="form-control datetimepicker" type="text" name="pickup_date" id="pickup_date" autocomplete="off" required disabled> --}}
                             <div class="input-group date" id="datetimepicker1" data-target-input="nearest">
-                                <input type="text" name="pickup_date" class="form-control datetimepicker-input" data-target="#datetimepicker1" value="{{ old('pickup_date') }}" required/>
+                                <input type="text" name="pickup_date" id="pickup_date" class="form-control datetimepicker-input" data-target="#datetimepicker1" value="{{ old('pickup_date') }}" required/>
                                 <div class="input-group-append" data-target="#datetimepicker1" data-toggle="datetimepicker">
                                     <div class="input-group-text"><i class="fa fa-calendar"></i></div>
                                 </div>
@@ -199,48 +199,56 @@
                                 <div class="my-alert alert-danger">! {{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="form-group row" style="display: none" id="form-group-status-lepas-kunci">
+                        <div class="form-group row" @if (empty($cat_id_tipe_armada)) style="display: none" @endif id="form-group-status-lepas-kunci">
                             <label class="col-form-label">
                                 <div class="pull-right" style="color:black; font-size:15px;">
                                     Status Lepas Kunci <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Status Lepas Kunci"></i>
                                 </div>
                             </label>
-                            <select name="status_lepas_kunci" id="status_lepas_kunci" class="form-control" data-current-tambahan = '{{ old('status_lepas_kunci') && old('status_lepas_kunci') == 'shipped off key' ? $price_lepas_kunci_dikirim :  0}}' disabled>
-                                <option value="">Pilih Status Lepas Kunci</option>
+                            <select name="status_lepas_kunci" id="status_lepas_kunci" class="form-control" @if(empty($cat_id_tipe_armada)) disabled @endif>
                                 @foreach ($status_lepas_kunci as $item)
-                                    <option value="{{$item}}" @if(old('status_lepas_kunci') == $item) selected @endif>{{$item}}</option>
+                                    <option value="{{$item}}" @if(old('status_lepas_kunci') == $item) selected @endif>
+                                        @if ($item == 'off key')
+                                            Lepas Kunci
+                                        @else
+                                            Mobil + Driver
+                                        @endif
+                                    </option>
                                 @endforeach
                             </select>
                             @error('status_lepas_kunci')
                                 <div class="my-alert alert-danger">! {{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="form-group row" style="display: none" id="form-group-status-pengambilan">
+                        <div class="form-group row" @if (empty($cat_id_tipe_armada)) style="display: none" @endif id="form-group-status-pengambilan">
                             <label class="col-form-label">
                                 <div class="pull-right" style="color:black; font-size:15px;">
                                     Status Pengambilan <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Status Pengambilan"></i>
                                 </div>
                             </label>
-                            <select name="status_pengambilan" id="status_pengambilan" class="form-control" data-current-tambahan = '{{ old('status_pengambilan') && old('status_pengambilan') == 'send out car' ? $price_pengambilan_dikirim :  0}}' disabled>
-                                <option value="">Pilih Status Pengambilan</option>
+                            <select name="status_pengambilan" id="status_pengambilan" class="form-control" @if(empty($cat_id_tipe_armada)) disabled @endif>
                                 @foreach ($status_pengambilan as $item)
-                                    <option value="{{$item}}" @if(old('status_pengambilan') == $item) selected @endif>{{$item}}</option>
+                                    <option value="{{$item}}" @if(old('status_pengambilan') == $item) selected @endif>
+                                        @if ($item == 'taken in place')
+                                            Ambil di Tempat
+                                        @else
+                                            Mobil Dikirimkan
+                                        @endif
+                                    </option>
                                 @endforeach
                             </select>
                             @error('status_pengambilan')
                                 <div class="my-alert alert-danger">! {{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="form-group row" style="display: none" id="form-group-grand-total">
+                        <div class="form-group row" id="cek-harga-sewa-btn-form" @if (empty($cat_id_tipe_armada)) style="display: none" @endif>
                             <label class="col-form-label">
                                 <div class="pull-right" style="color:black; font-size:15px;">
-                                    Grand Total <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Grand Total"></i>
+                                    Cek Harga Sewa <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Cek Harga Sewa"></i>
                                 </div>
                             </label>
-                            <input type="text" min="0" class="form-control" name="grand_total" id="grand_total" data-total="{{ old('grand_total') ? str_replace([' ', 'Rp', 'Rp.', '.', ','], '', old('grand_total')) : 0 }}" value="{{ old('grand_total') ?? 'Rp 0' }}" readonly disabled>
-                            @error('grand_total')
-                                <div class="my-alert alert-danger">! {{ $message }}</div>
-                            @enderror
+                            &nbsp;&nbsp;
+                            <a data-toggle="modal" data-target="#cek-grand-total" class="btn btn-success" id="cek-harga-sewa-btn" style="border-radius: 50%; width:8.5%"><i class="flaticon-price-tag" style="color: white"></i></a>
                         </div>
                     </div>
                 </div>
@@ -248,13 +256,57 @@
                 <div class="row">
                     <div class="col">
                         <div style="margin: auto; width:50%; text-align:center">
-                            <button class="btn btn-primary btn-sm" style="background-color:#FF5C00; border-radius: 6px; border:none; width:140px; height:44px; font-size:16px">
+                            <button id="booking-btn" class="btn btn-primary btn-sm" style="background-color:#FF5C00; border-radius: 6px; border:none; width:140px; height:44px; font-size:16px">
                                 Booking
                             </button>
                         </div>
                     </div>
                 </div>
         </form>
+    </div>
+
+    <div id="cek-grand-total" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="my-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="my-modal-title">Grand Total</h5>
+                    <button class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h3 id="grand-total-modal"></h3>
+                    <hr>
+                    <p>Detail : </p>
+                    <table class="table">
+                        <tr>
+                            <td>Status Lepas Kunci</td>
+                            <td id="status-lepas-kunci-modal"></td>
+                        </tr>
+                        <tr>
+                            <td>Status Pengambilan</td>
+                            <td id="status-pengambilan-modal"></td>
+                        </tr>
+                        <tr>
+                            <td>Durasi</td>
+                            <td id="durasi-modal"></td>
+                        </tr>
+                        <tr>
+                            <td>Harga per Hari</td>
+                            <td id="price24-modal"></td>
+                        </tr>
+                        <tr>
+                            <td>Harga per 12 Jam</td>
+                            <td id="price12-modal"></td>
+                        </tr>
+                        <tr>
+                            <td>Penambahan Harga</td>
+                            <td id="penambahan-harga-modal"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer style="padding: 3% 15% 2% 15%; text-align:center" id="contact">
@@ -330,17 +382,10 @@
             var old_input = "{!! old('nama_customer') !!}"
             if(old_input !== ""){
                 $('#tipe_armada').trigger('change')
-                $('#armada').trigger('change')
                 $('#status_lepas_kunci').trigger('change')
                 $('#status_pengambilan').trigger('change')
                 $('#durasi_sewa').trigger('keyup')
-
-                console.log($('#armada').data('current-price'))
-                console.log($('#grand_total').data('total'))
-                console.log($('#status_lepas_kunci').data('current-tambahan'))
-                console.log($('#status_pengambilan').data('current-tambahan'))
             }
-
 
         })
 
@@ -353,135 +398,134 @@
 
         function disabledCertainInput(){
             $('#durasi_sewa').prop('disabled', true)
+            $('#durasi_sewa').prop('readonly', false)
             $('#pickup_date').prop('disabled', true)
             $('#status_lepas_kunci').prop('disabled', true)
             $('#status_pengambilan').prop('disabled', true)
             $('#status_lepas_kunci').prop('selectedIndex', 0)
             $('#status_pengambilan').prop('selectedIndex', 0)
-            $('#grand_total').prop('disabled', true)
-            $('#grand_total').data('total', 0)
-            $('#grand_total').val('Rp 0')
 
             $('#status_lepas_kunci').data('current-tambahan',0)
             $('#status_pengambilan').data('current-tambahan',0)
-            $('#armada').data('current-price',0)
 
             $('#form-group-durasi-sewa').slideUp(200)
             $('#form-group-pickup-date').slideUp(200)
             $('#form-group-status-lepas-kunci').slideUp(200)
             $('#form-group-status-pengambilan').slideUp(200)
-            $('#form-group-grand-total').slideUp(200)
+            $('#cek-harga-sewa-btn-form').slideUp(200);
         }
 
         function enabledCertainInput(){
             $('#durasi_sewa').prop('disabled', false)
+            $('#durasi_sewa').prop('readonly', true)
             $('#pickup_date').prop('disabled', false)
             $('#status_lepas_kunci').prop('disabled', false)
             $('#status_pengambilan').prop('disabled', false)
-            $('#grand_total').prop('disabled', false)
 
             $('#form-group-durasi-sewa').slideDown(200)
             $('#form-group-pickup-date').slideDown(200)
             $('#form-group-status-lepas-kunci').slideDown(200)
             $('#form-group-status-pengambilan').slideDown(200)
-            $('#form-group-grand-total').slideDown(200)
+            $('#cek-harga-sewa-btn-form').slideDown(200);
         }
 
 
         $('#tipe_armada').on('change', function(e){
+            var index = $('#tipe_armada option:selected').data('index');
             var value = $('#tipe_armada option:selected').val();
-
-            if(value != ''){
-
-                var data = @json($tipe_armada);
-                var old_armada = {!! old('id_armada') !!}
-
-                $('#form-group-armada').slideDown(200);
-                $('#armada').prop('disabled', false)
-                $('#armada').html('')
-                $('#armada').append('<option value="">Pilih Armada</option>')
-
-                $.each(data[value], function(index, value){
-                    if(old_armada !== null && old_armada == value['id']){
-                        $('#armada').data('current-price', value['price'])
-                        $('#armada').append("<option value="+value['id']+" data-price="+value['price']+" data-status-driver='"+value['status_driver']+"' selected>"+value['kode_armada']+"</option>")
-                    }else{
-                        $('#armada').append("<option value="+value['id']+" data-price="+value['price']+" data-status-driver='"+value['status_driver']+"'>"+value['kode_armada']+"</option>")
-                    }
-                });
-
-            }else{
-                disabledCertainInput();
-
-                $('#form-group-armada').slideUp(200);
-                $('#armada').prop('disabled', true);
-            }
-        })
-
-        $('#armada').on('change', function(e){
-            var value = $('#armada option:selected').val()
-            var current_price = $(this).data('current-price')
-            var current_grand_total = $('#grand_total').data('total')
 
             if(value != ''){
                 enabledCertainInput();
 
-                var price = $('#armada option:selected').data('price');
-                var total = (parseInt(current_grand_total) + parseInt(price)) - parseInt(current_price)
-                $(this).data('current-price', price)
-                $('#grand_total').val('Rp '+number_format(total,0,',','.'))
-                $('#grand_total').data('total',total)
+                var data = @json($tipe_armada);
+                var is_driver_allowed =$('#tipe_armada option:selected').data('is-driver-allowed');
+                var status_lepas_kunci = {!! json_encode($status_lepas_kunci) !!};
+
+
+                var old_status_lepas_kunci = "{!! old('status_lepas_kunci') !!}"
+                if(!is_driver_allowed){
+                    $('#status_lepas_kunci').html('')
+                    $.each(status_lepas_kunci, function(i, val){
+                        if(val != 'with driver'){
+                            $('#status_lepas_kunci').append("<option value='"+val+"'>Lepas Kunci</option>");
+                        }
+                    });
+                }else{
+                    $('#status_lepas_kunci').html('')
+                    $.each(status_lepas_kunci, function(i, val){
+                        if(val == 'off key'){
+                            item_name = 'Lepas Kunci';
+                        }else{
+                            item_name = 'Mobil + Driver'
+                        }
+
+                        if (old_status_lepas_kunci !== undefined && old_status_lepas_kunci == val) {
+                            $('#status_lepas_kunci').append("<option value='"+val+"' selected>"+item_name+"</option>");
+                        } else {
+                            $('#status_lepas_kunci').append("<option value='"+val+"'>"+item_name+"</option>");
+                        }
+
+                    });
+                }
+
 
             }else{
                 disabledCertainInput();
             }
-
         })
 
-        $('#status_lepas_kunci').on('change', function(e){
-            var current_tambahan = $(this).data('current-tambahan')
-            var current_grand_total = $('#grand_total').data('total')
-            var value = $('#status_lepas_kunci option:selected').val();
-            var tambahan_harga = 0
+        $('#sub_durasi_sewa').on('click', function(e){
+            let hours = $('#durasi_sewa').val()
 
-            if(value == 'shipped off key'){
-                tambahan_harga = {!! $price_lepas_kunci_dikirim !!}
+            if(hours != 12){
+                $('#durasi_sewa').val(parseInt(hours) - 12);
             }
+        });
 
-            var total = (parseInt(current_grand_total) + parseInt(tambahan_harga)) - parseInt(current_tambahan)
-            $(this).data('current-tambahan', tambahan_harga)
-            $('#grand_total').val('Rp '+number_format(total,0,',','.'))
-            $('#grand_total').data('total', total)
-        })
 
-        $('#status_pengambilan').on('change', function(e){
-            var current_tambahan = $(this).data('current-tambahan')
-            var current_grand_total = $('#grand_total').data('total')
-            var value = $('#status_pengambilan option:selected').val();
-            var tambahan_harga = 0
+        $('#add_durasi_sewa').on('click', function(e){
+            let hours = $('#durasi_sewa').val()
 
-            if(value == 'send out car'){
-                tambahan_harga = {!! $price_pengambilan_dikirim !!}
+            // max 5 days (60 hours)
+            if(hours != 60){
+                $('#durasi_sewa').val(parseInt(hours) + 12);
             }
+        });
 
-            var total = (parseInt(current_grand_total) + parseInt(tambahan_harga)) - parseInt(current_tambahan)
-            $(this).data('current-tambahan', tambahan_harga)
-            $('#grand_total').val('Rp '+number_format(total,0,',','.'))
-            $('#grand_total').data('total', total)
+        $('#cek-harga-sewa-btn').click(function(){
+            let url = $("meta[name='base_url']").attr('content');
+            let _token = $('meta[name="csrf-token"]').attr('content');
+            let id_tipe_armada = parseInt($('#tipe_armada option:selected').val());
+            let durasi = parseInt($ ('#durasi_sewa').val())
+            let status_pengambilan = $('#status_pengambilan option:selected').val()
+            let status_lepas_kunci = $('#status_lepas_kunci option:selected').val()
+
+            $.ajax({
+                url : url+"/transaction/cek-harga-sewa",
+                dataType : "json",
+                method: "POST",
+                data : {
+                    _token : _token,
+                    id_tipe_armada : id_tipe_armada,
+                    durasi : durasi,
+                    status_pengambilan : status_pengambilan,
+                    status_lepas_kunci : status_lepas_kunci,
+                }
+            }).done(function(data){
+                console.log('success',data)
+                $('#grand-total-modal').html(data.grand_total);
+                $('#status-lepas-kunci-modal').html(data.status_lepas_kunci);
+                $('#status-pengambilan-modal').html(data.status_pengambilan);
+                $('#price12-modal').html(data.price12);
+                $('#price24-modal').html(data.price24);
+                $('#penambahan-harga-modal').html(data.penambahan_harga);
+                $('#durasi-modal').html(data.durasi);
+
+            }).fail(function(data){
+                console.log('fail', data)
+            })
         })
 
-        $('#durasi_sewa').on('keyup', function(e){
-            var days = $(this).val()
-            var current_price = $('#armada').data('current-price')
-            var current_tambahan_lepas_kunci = $('#status_lepas_kunci').data('current-tambahan')
-            var current_tambahan_pengambilan = $('#status_pengambilan').data('current-tambahan')
-
-            var total = (parseInt(days) * parseInt(current_price)) + (parseInt(current_tambahan_lepas_kunci) + parseInt(current_tambahan_pengambilan))
-
-            $('#grand_total').val('Rp '+number_format(total,0,',','.'))
-            $('#grand_total').data('total', total)
-
-        })
     </script>
 </body>
 
