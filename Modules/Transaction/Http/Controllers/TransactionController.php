@@ -103,6 +103,18 @@ class TransactionController extends Controller
             ->addColumn('tipe_armada', function($data){
                 return $data['tipe_armada'];
             })
+            ->addColumn('status_lepas_kunci', function($data){
+                if($data['status_lepas_kunci'] == 'off key')
+                    return 'Lepas Kunci';
+                else
+                    return 'Mobil + Driver';
+            })
+            ->addColumn('status_pengambilan', function($data){
+                if($data['status_pengambilan'] == 'taken in place')
+                    return 'Ambil di Tempat';
+                else
+                    return 'Dikirimkan';
+            })
             ->addIndexColumn()
             ->rawColumns(['action'])
             ->make(true);

@@ -285,7 +285,13 @@
                                         <label for="">Status Lepas Kunci</label>
                                     </div>
                                     <div class="col-md-8">
-                                        <p>{{ $item['status_lepas_kunci'] ?? 'None' }}</p>
+                                        @if (isset($item['status_lepas_kunci']) && $item['status_lepas_kunci'] == 'off key')
+                                            <p>Lepas Kunci</p>
+                                        @elseif(isset($item['status_lepas_kunci']) && $item['status_lepas_kunci'] == 'with driver')
+                                            <p>Mobil + Driver</p>
+                                        @else
+                                            <p>None</p>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="form-group row detal-trx">
@@ -293,7 +299,13 @@
                                         <label for="">Status Pengambilan</label>
                                     </div>
                                     <div class="col-md-8">
-                                        <p>{{ $item['status_pengambilan'] ?? 'None' }}</p>
+                                        @if (isset($item['status_pengambilan']) && $item['status_pengambilan'] == 'taken in place')
+                                            <p>Ambil di Tempat</p>
+                                        @elseif(isset($item['status_pengambilan']) && $item['status_pengambilan'] == 'send out car')
+                                            <p>Dikirimkan</p>
+                                        @else
+                                            <p>None</p>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="form-group row detal-trx">
@@ -745,10 +757,6 @@
                     // },
                     {data: 'durasi_sewa', name: 'durasi_sewa', render: function (data, type, full, meta) {
                             return data+' Jam';
-                        }
-                    },
-                    {data: 'harga_sewa', name: 'harga_sewa', render: function (data, type, full, meta) {
-                            return 'Rp '+number_format(data, 0, ',', '.');
                         }
                     },
                     {data: 'grand_total', name: 'grand_total', render: function (data, type, full, meta) {
