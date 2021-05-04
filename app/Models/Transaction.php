@@ -13,6 +13,7 @@ class Transaction extends Model
         'alamat_customer',
         'no_hp_customer',
         'id_armada',
+        'id_driver',
         'durasi_sewa',
         'pickup_date',
         'return_date',
@@ -44,6 +45,10 @@ class Transaction extends Model
             return null;
     }
 
+    public function driver(){
+        return $this->belongsTo(Driver::class, 'id_driver', 'id');
+    }
+
     public function getScheduleStatusAttribute(){
         $expire_date = Self::getExpiredAtAttribute();
         if($expire_date !== null && strtotime($expire_date) < strtotime(date('Y-m-d H:i:s'))){
@@ -51,13 +56,13 @@ class Transaction extends Model
 
         }elseif($expire_date !== null && strtotime($expire_date) >= strtotime(date('Y-m-d H:i:s'))){
             return 'waiting confirmation';
-        
+
         }elseif($this->status_transaksi == 'on rent' && strtotime($this->return_date) < strtotime(date('Y-m-d H:i:s'))){
             return 'late return';
-        
+
         }elseif($this->status_transaksi == 'on rent' && strtotime($this->return_date) >= strtotime(date('Y-m-d H:i:s'))){
             return 'on progress';
-        
+
         }else{
             return 'returned';
         }

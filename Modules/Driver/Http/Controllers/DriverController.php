@@ -19,12 +19,14 @@ class DriverController extends Controller
      */
     public function index()
     {
-        $data['driver'] = Driver::all();   
+        $data['driver'] =   Driver::with(['transaction' => function($query){
+                                $query->whereIn('status_transaksi',['pending', 'on rent'])->orderBy('pickup_date', 'asc');
+                            }])->orderBy('created_at', 'desc')->get();
 
         return view('driver::index', $data);
     }
 
-    
+
     /**
      * Store a newly created resource in storage.
      * @param Request $request
@@ -60,11 +62,13 @@ class DriverController extends Controller
     public function table(Request $request){
         $post = $request->all();
 
-        $data = Driver::orderBy('updated_at','desc')->get();
+        $data = Driver::with(['transaction' => function($query){
+                    $query->whereIn('status_transaksi',['pending', 'on rent'])->orderBy('pickup_date', 'desc');
+                }])->orderBy('created_at', 'desc')->get();
 
         return DataTables::of($data)
             ->addColumn('action', function ($data) {
-                return "<a href='#' data-toggle='modal' data-target='#updatedriver".$data['id']."' class='btn btn-warning btn-sm' style='color: white'><i class='flaticon-edit'></i>Update</a> &nbsp; <a href='".route('driver.delete',[encSlug($data['id'])])."' class='btn btn-danger btn-sm btn-delete' title='delete ".$data['']."'><i class='flaticon2-trash'></i>Delete</a>";
+                return view('driver::action', ['data' => $data]);
                 // return "<a href='".route('admin.brand.edit', [$data['id'], $data['email']])."'><i class='fa fa-edit text-warning'></i></a> | <a href='".route('admin.brand.destroy', [$data['id'], $data['email']])."' class='btn-delete' title=".$data['name']."><i class='fa fa-trash text-danger'></i></a>";
             })
             ->addIndexColumn()
@@ -84,7 +88,7 @@ class DriverController extends Controller
     {
         $post = $request->except('_token');
         $id = decSlug($id);
-        
+
         $validator = Validator::make($post, [
             'name' => ['required'],
             'phone' => [
@@ -96,7 +100,7 @@ class DriverController extends Controller
         if(!empty($validator->errors()->messages())){
             return redirect()->back()->withErrors($validator->errors()->messages());
         }
-        
+
         DB::beginTransaction();
 
         try{

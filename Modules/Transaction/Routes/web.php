@@ -28,6 +28,8 @@ Route::prefix('transaction')->middleware('validate_session')->group(function() {
     Route::post('requirements', 'TransactionController@updateRequirements')->name('transaction.requirements.update')->middleware('feature_control:transaction_requirements');
     Route::get('notif', 'TransactionController@getNotif')->name('transaction.notif');
 
+    Route::post('assign-driver', 'TransactionController@assignDriver')->name('assign-driver');
+
 });
 
 Route::post('transaction/cek-harga-sewa', 'TransactionController@cekHargaSewa');

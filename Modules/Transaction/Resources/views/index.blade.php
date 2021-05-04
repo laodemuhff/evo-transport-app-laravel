@@ -133,7 +133,11 @@
                                 <option value="{{null}}">All</option>
                                 <option value="none">None</option>
                                 @foreach ($status_lepas_kunci as $item)
-                                    <option value="{{ $item }}">{{ ucfirst($item) }}</option>
+                                    @if ($item == 'with driver')
+                                        <option value="{{ $item }}">{{ 'Mobil + Driver' }}</option>
+                                    @else
+                                        <option value="{{ $item }}">{{ 'Lepas Kunci' }}</option>
+                                    @endif
                                 @endforeach
                             </select>
                         </div>
@@ -147,7 +151,11 @@
                                 <option value="{{null}}">All</option>
                                 <option value="none">None</option>
                                 @foreach ($status_pengambilan as $item)
-                                    <option value="{{ $item }}">{{ ucfirst($item) }}</option>
+                                    @if ($item == 'taken in place')
+                                        <option value="{{ $item }}">{{ 'Ambil di Tempat' }}</option>
+                                    @else
+                                        <option value="{{ $item }}">{{ 'Dikirimkan' }}</option>
+                                    @endif
                                 @endforeach
                             </select>
                         </div>
@@ -202,7 +210,11 @@
     </div>
 
     <!-- Modal Update -->
-    @foreach ($transaction as $item)
+    @foreach ($transaction as $key => $item)
+        {{-- @php
+            if($key == 1)
+                dd($item);
+        @endphp --}}
         <div class="modal fade" id="detailTrx{{$item['id']}}" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -294,6 +306,16 @@
                                         @endif
                                     </div>
                                 </div>
+                                @if(isset($item['status_lepas_kunci']) && $item['status_lepas_kunci'] == 'with driver')
+                                <div class="form-group row detal-trx">
+                                    <div class="col-md-4">
+                                        <label for="">Nama Driver</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                       {{ $item['driver']['name'] ?? '-' }}
+                                    </div>
+                                </div>
+                                @endif
                                 <div class="form-group row detal-trx">
                                     <div class="col-md-4">
                                         <label for="">Status Pengambilan</label>
@@ -452,7 +474,13 @@
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                         @if ($status == 'pending')
                             <button type="button" class="btn btn-danger" id="cancel-button{{$item['id']}}" data-toggle="modal" data-target="#cancel-modal{{$item['id']}}">Cancel Rent</button>
-                            <button type="button" class="btn btn-primary" id="confirm-button{{$item['id']}}" data-toggle="modal" data-target="#confirm-modal{{$item['id']}}">Confirm Rent</button>
+                            @if ($item['status_lepas_kunci'] == 'with driver')
+                                @if (isset($item['id_driver']))
+                                    <button type="button" class="btn btn-primary" id="confirm-button{{$item['id']}}" data-toggle="modal" data-target="#confirm-modal{{$item['id']}}">Confirm Rent</button>
+                                @endif
+                            @else
+                                <button type="button" class="btn btn-primary" id="confirm-button{{$item['id']}}" data-toggle="modal" data-target="#confirm-modal{{$item['id']}}">Confirm Rent</button>
+                            @endif
                         @endif
                         @if ($status == 'on_rent')
                             <button type="button" class="btn btn-success" id="mark-button{{$item['id']}}" data-toggle="modal" data-target="#mark-modal{{$item['id']}}">Mark As Returned</button>
@@ -544,6 +572,57 @@
                 </div>
             </div>
         @endif
+
+        <div id="assignDriverModal_{{$item['nomor_faktur']}}" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="my-modal-title" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="my-modal-title">Assign Transaction to Driver</h5>
+                        &nbsp;&nbsp;&nbsp;
+                        @if (isset($item['id_driver']))
+                            <span class="badge badge-pill badge-success">Assigned</span>
+                        @else
+                            <span class="badge badge-pill badge-danger">Not Assigned</span>
+                        @endif
+                        <button class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="{{route('assign-driver')}}" method="post" class="form">
+                        @csrf
+                        <input type="hidden" name="id" value="{{$item['id']}}">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="No. Faktur">Nomor Faktur</label>
+                                <input id="No. Faktur" class="form-control" type="text" name="nomor_faktur" disabled value="{{$item['nomor_faktur']}}">
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                    <label for="">Pickup Date</label>
+                                    <input type="text" disabled class="form-control" value="{{$item['pickup_date']}}">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="">Return Date</label>
+                                    <input type="text" disabled class="form-control" value="{{$item['return_date']}}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="driver">Pilih Driver</label>
+                                <select name="driver" id="driver" class="form-control">
+                                    @foreach ($driver as $dr)
+                                        <option value="{{$dr['id']}}" @if($item['id_driver'] == $dr['id']) selected @endif>{{$dr['name']}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     @endforeach
 @endsection
 @section('scripts')
@@ -744,7 +823,10 @@
                     },
                     {data: 'nomor_faktur', name: 'nomor_faktur'},
                     {data: 'nama_customer', name: 'nama_customer'},
-                    {data: 'no_hp_customer', name: 'no_hp_customer'},
+                    {data: 'no_hp_customer', name: 'no_hp_customer', render: function (data, type, full, meta) {
+                            return data.substr(0,8)+'...';
+                        }
+                    },
                     {data: 'tipe_armada', name: 'tipe_armada'},
                     {data: 'kode_armada', name: 'kode_armada', responsivePriority: 10001},
                     // {data: 'pickup_date', name: 'pickup_date', render: function (data, type, full, meta) {

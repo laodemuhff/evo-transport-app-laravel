@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use App\Models\Transaction;
 use App\Models\TipeArmada;
 use App\Models\Armada;
+use App\Models\Driver;
 use App\Models\Setting;
 use App\Lib\MyHelper;
 use Yajra\DataTables\Facades\DataTables;
@@ -24,15 +25,17 @@ class TransactionController extends Controller
         $data['transaction'] = Transaction::with(['armada' => function($query){
                 $query->with('tipe_armada');
             }
-        ])
+        , 'driver'])
         ->where('status_transaksi', str_replace('_', ' ', $status))
         ->where('is_deleted', 0)
         ->get();
 
+        $data['driver'] = Driver::all();
         $data['tipe_armada'] = TipeArmada::all()->toArray();
         $data['status_lepas_kunci'] = Transaction::getEnumValues('status_lepas_kunci');
         $data['status_pengambilan'] = Transaction::getEnumValues('status_pengambilan');
         $data['status'] = $status;
+
 
         return view('transaction::index', $data);
     }
@@ -90,11 +93,7 @@ class TransactionController extends Controller
 
         return DataTables::of($data)
             ->addColumn('action', function ($data) {
-                if($data['status_lepas_kunci'] == null){
-                    return "<a href='".route('transaction.delete',[encSlug($data['id'])])."' class='btn btn-danger btn-sm btn-delete' title='hapus ".$data['nomor_faktur']."' style='width:35px; padding: 8px !important'><i class='la la-trash'></i></a><a href='#' class='btn btn-info btn-sm' style='color: white; width:35px; padding: 8px !important' data-toggle='modal' data-target='#detailTrx".$data['id']."' title='detail ".$data['nomor_faktur']."'><i class='la la-eye'></i></a><a href='".route('transaction.assign.driver',[encSlug($data['id'])])."' class='btn btn-success btn-sm btn-success' title='assign to driver' style='width:35px; padding: 8px !important'><i class='la la-user'></i></a>";
-                }else{
-                    return "<a href='".route('transaction.delete',[encSlug($data['id'])])."' class='btn btn-danger btn-sm btn-delete' title='hapus ".$data['nomor_faktur']."' style='width:35px; padding: 8px !important'><i class='la la-trash'></i></a><a href='#' class='btn btn-info btn-sm' style='color: white; width:35px; padding: 8px !important' data-toggle='modal' data-target='#detailTrx".$data['id']."' title='detail ".$data['nomor_faktur']."'><i class='la la-eye'></i></a>";
-                }
+                return view('transaction::action', ['data' => $data]);
                 // return "<a href='".route('admin.brand.edit', [$data['id'], $data['email']])."'><i class='fa fa-edit text-warning'></i></a> | <a href='".route('admin.brand.destroy', [$data['id'], $data['email']])."' class='btn-delete' title=".$data['name']."><i class='fa fa-trash text-danger'></i></a>";
             })
             ->addColumn('kode_armada', function($data){
@@ -304,13 +303,33 @@ class TransactionController extends Controller
 
     public function confirmRent(Request $request){
         $post = $request->all();
-        $update = Transaction::where('id', $post['id'])->update(['status_transaksi' => 'on rent']);
 
-        if($update){
-            return redirect('transaction/list/on_rent')->with('success',['Transaction is successfully confirmed']);
-        }else{
-            return redirect()->back()->withErrors('Failed to confirm transaction');
+        $tr = Transaction::where('id', $post['id']);
+
+        $id_driver = (clone $tr)->first()['id_driver'] ?? null;
+
+        $on_rent = Transaction::where('id_driver', $id_driver)->where('status_transaksi', 'on rent')->first();
+
+        if(!empty($id_driver) && !$on_rent){
+
+            // cek tanggal yang di confirm
+            $pickup_date = (clone $tr)->first()['pickup_date'];
+            $nearest_date = Transaction::where('id_driver', $id_driver)->where('status_transaksi', 'pending')->where('id', '!=', $post['id'])->orderBy('pickup_date', 'asc')->first();
+
+            if(strtotime($pickup_date) > strtotime($nearest_date['pickup_date'])){
+                return redirect()->back()->withErrors('This Schedule is Past the Existing Schedule, To Continue Please Review the '.$nearest_date['nomor_faktur']);
+            }
+
+            $update = (clone $tr)->update(['status_transaksi' => 'on rent']);
+
+            if($update){
+                return redirect('transaction/list/on_rent')->with('success',['Transaction is successfully confirmed']);
+            }else{
+                return redirect()->back()->withErrors('Failed to confirm transaction');
+            }
         }
+
+        return redirect()->back()->withErrors('Driver On Rent at '.$on_rent['nomor_faktur']);
     }
 
     public function cancelRent(Request $request){
@@ -403,5 +422,51 @@ class TransactionController extends Controller
         }
 
         return $year.'-'.$month.'-'.$day.' '.$time;
+    }
+
+    public function assignDriver(Request $r){
+        $post = $r->all();
+
+        $cek_schedule = Self::isDriverAvailable($post['driver'], $post['id']);
+        if($cek_schedule['status']){
+            $update = Transaction::where('id', $post['id'])->update([
+                'id_driver' => $post['driver']
+            ]);
+
+            if($update){
+                return redirect()->back()->with('success', ['Succesfully Assigned Driver to Transaction']);
+            }
+
+            $r->flash();
+            return redirect()->back()->withErrors('Failed to Assign Driver!');
+        }
+
+        $r->flash();
+        return redirect()->back()->withErrors('Failed to Assign Driver! There is a Schedule Collision with '.$cek_schedule['collison_faktur']);
+    }
+
+    protected static function isDriverAvailable($id_driver, $id_transaction){
+        $tr = Transaction::find($id_transaction);
+
+        $pickup_dtr = $tr->pickup_date;
+        $return_dtr = $tr->return_date;
+
+        $found_driver = Transaction::where('id', '!=', $id_transaction)->where('id_driver', $id_driver)->whereIn('status_transaksi', ['pending', 'on rent']);
+
+        // if driver not found in transaction outside current transaction
+        if(!(clone $found_driver)->first()){
+            return ['status' => true];
+        }
+
+        foreach((clone $found_driver->get()) as $key => $item){
+            if  (   (strtotime($pickup_dtr) >= strtotime($item['pickup_date']) && strtotime($pickup_dtr) <= strtotime($item['return_date'])) ||
+                    (strtotime($return_dtr) >= strtotime($item['pikcup_date']) && strtotime($return_dtr) <= strtotime($item['return_date']))
+                )
+                {
+                    return ['status' => false, 'collison_faktur' => $item['nomor_faktur']];
+                }
+        }
+
+        return ['status' => true];
     }
 }

@@ -10,5 +10,9 @@ class Driver extends Model
         'name',
         'phone'
     ];
-    
+
+    public function transaction(){
+        return $this->hasMany(Transaction::class, 'id_driver');
+    }
+
 }

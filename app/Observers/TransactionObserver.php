@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Transaction;
+use App\Models\Armada;
 
 class TransactionObserver
 {
@@ -68,6 +69,12 @@ class TransactionObserver
                 'status_transaksi' => 'cancelled',
                 'cancelled_reason' => 'expired',
                 'cancelled_by' => 'system'
+            ]);
+
+            $id_armada =  Transaction::where('id', $transaction->id)->first()['id_armada'];
+
+            Armada::where('id', $id_armada)->update([
+                'status_armada' => 'ready'
             ]);
         }
     }

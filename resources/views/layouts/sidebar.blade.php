@@ -141,35 +141,10 @@
         </li>
     @endif
 
-    <li class="kt-menu__item  kt-menu__item--submenu @yield('driver')" aria-haspopup="true" data-ktmenu-submenu-toggle="hover">
-        <a href="javascript:;" class="kt-menu__link kt-menu__toggle">
-            <i class="kt-menu__link-icon flaticon-car"></i>
-            <span class="kt-menu__link-text">Driver</span>
-            <i class="kt-menu__ver-arrow la la-angle-right"></i>
+    <li class="kt-menu__item {{ Request::route()->getName() == 'driver.list' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
+        <a href="{{route('driver.list')}}" class="kt-menu__link ">
+            <i class="kt-menu__link-icon flaticon-car"></i><span class="kt-menu__link-text">Driver</span>
         </a>
-        <div class="kt-menu__submenu "><span class="kt-menu__arrow"></span>
-            <ul class="kt-menu__subnav">
-                <li class="kt-menu__item  kt-menu__item--parent" aria-haspopup="true">
-                    <span class="kt-menu__link">
-                        <span class="kt-menu__link-text">
-                            Driver
-                        </span>
-                    </span>
-                </li>
-                <li class="kt-menu__item {{ Request::route()->getName() == 'driver.list' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
-                    <a href="{{route('driver.list')}}" class="kt-menu__link ">
-                        <i class="kt-menu__link-bullet kt-menu__link-bullet--line"><span></span></i>
-                        <span class="kt-menu__link-text">List Driver</span>
-                    </a>
-                </li>
-                <li class="kt-menu__item {{ Request::route()->getName() == 'driver.assign' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
-                    <a href="{{route('driver.assign')}}" class="kt-menu__link ">
-                        <i class="kt-menu__link-bullet kt-menu__link-bullet--line"><span></span></i>
-                        <span class="kt-menu__link-text">Assign Driver</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
     </li>
 
     <li class="kt-menu__item  kt-menu__item--submenu @yield('transaction')" aria-haspopup="true" data-ktmenu-submenu-toggle="hover"><a href="javascript:;" class="kt-menu__link kt-menu__toggle"><i class="kt-menu__link-icon la la-cart-plus" style="font-size: 1.6em"></i><span class="kt-menu__link-text">Transaction</span><i class="kt-menu__ver-arrow la la-angle-right"></i></a>
