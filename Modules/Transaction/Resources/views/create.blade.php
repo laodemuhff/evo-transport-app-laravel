@@ -93,6 +93,19 @@
                         <div class="form-group row">
                             <label class="col-4 col-form-label">
                                 <div class="pull-right">
+                                    Email Customer <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Email Customer"></i>
+                                </div>
+                            </label>
+                            <div class="col-8">
+                                <input type="email" name="email_customer" id="email_customer" class="form-control" value="{{ old('email_customer') }}" required>
+                            </div>
+                            @error('email_customer')
+                                <div class="my-alert alert-danger">! {{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-4 col-form-label">
+                                <div class="pull-right">
                                     No. Telepon Customer <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="No. Telp."></i>
                                 </div>
                             </label>

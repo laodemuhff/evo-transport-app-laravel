@@ -310,26 +310,29 @@ class TransactionController extends Controller
 
         $on_rent = Transaction::where('id_driver', $id_driver)->where('status_transaksi', 'on rent')->first();
 
-        if(!empty($id_driver) && !$on_rent){
+        if(!empty($id_driver)){
+            if(!$on_rent){
+                // cek tanggal yang di confirm
+                $pickup_date = (clone $tr)->first()['pickup_date'];
+                $nearest_date = Transaction::where('id_driver', $id_driver)->where('status_transaksi', 'pending')->where('id', '!=', $post['id'])->orderBy('pickup_date', 'asc')->first();
 
-            // cek tanggal yang di confirm
-            $pickup_date = (clone $tr)->first()['pickup_date'];
-            $nearest_date = Transaction::where('id_driver', $id_driver)->where('status_transaksi', 'pending')->where('id', '!=', $post['id'])->orderBy('pickup_date', 'asc')->first();
-
-            if(strtotime($pickup_date) > strtotime($nearest_date['pickup_date'])){
-                return redirect()->back()->withErrors('This Schedule is Past the Existing Schedule, To Continue Please Review the '.$nearest_date['nomor_faktur']);
-            }
-
-            $update = (clone $tr)->update(['status_transaksi' => 'on rent']);
-
-            if($update){
-                return redirect('transaction/list/on_rent')->with('success',['Transaction is successfully confirmed']);
+                if(!empty($nearest_date)){
+                    if(strtotime($pickup_date) > strtotime($nearest_date['pickup_date'])){
+                        return redirect()->back()->withErrors('Please make sure to assign driver sequentially by date, To Continue Please Review the '.$nearest_date['nomor_faktur']);
+                    }
+                }
             }else{
-                return redirect()->back()->withErrors('Failed to confirm transaction');
+                return redirect()->back()->withErrors('Driver On Rent at '.$on_rent['nomor_faktur']);
             }
         }
 
-        return redirect()->back()->withErrors('Driver On Rent at '.$on_rent['nomor_faktur']);
+        $update = (clone $tr)->update(['status_transaksi' => 'on rent']);
+
+        if($update){
+            return redirect('transaction/list/on_rent')->with('success',['Transaction is successfully confirmed']);
+        }else{
+            return redirect()->back()->withErrors('Failed to confirm transaction');
+        }
     }
 
     public function cancelRent(Request $request){
@@ -460,7 +463,7 @@ class TransactionController extends Controller
 
         foreach((clone $found_driver->get()) as $key => $item){
             if  (   (strtotime($pickup_dtr) >= strtotime($item['pickup_date']) && strtotime($pickup_dtr) <= strtotime($item['return_date'])) ||
-                    (strtotime($return_dtr) >= strtotime($item['pikcup_date']) && strtotime($return_dtr) <= strtotime($item['return_date']))
+                    (strtotime($return_dtr) >= strtotime($item['pickup_date']) && strtotime($return_dtr) <= strtotime($item['return_date']))
                 )
                 {
                     return ['status' => false, 'collison_faktur' => $item['nomor_faktur']];

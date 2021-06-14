@@ -96,7 +96,7 @@
             </div>
         </div>
 
-        <form action="{{route('transaction.store')}}" method="POST" enctype="multipart/form-data" style="margin-top: 6%">
+        <form action="{{route('guest.transaction.store')}}" method="POST" enctype="multipart/form-data" style="margin-top: 6%">
             <input type="hidden" name="guest_booking" value="{{true}}">
             @csrf
                 <div class="row">
@@ -110,6 +110,17 @@
                             </label>
                             <input type="text" name="nama_customer" id="nama_customer" class="form-control" value="{{ old('nama_customer') }}" placeholder="e.g John Wick" required>
                             @error('nama_customer')
+                                <div class="my-alert alert-danger">! {{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-form-label">
+                                <div class="pull-left" style="color:black; font-size:15px;">
+                                    Email Customer <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Nama Customer"></i>
+                                </div>
+                            </label>
+                            <input type="email" name="email_customer" id="email_customer" class="form-control" value="{{ old('email_customer') }}" placeholder="e.g John Wick" required>
+                            @error('email_customer')
                                 <div class="my-alert alert-danger">! {{ $message }}</div>
                             @enderror
                         </div>

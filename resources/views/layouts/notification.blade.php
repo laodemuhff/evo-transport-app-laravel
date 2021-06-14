@@ -1,4 +1,3 @@
-
 @if (session()->has('success'))
     <div class="alert alert-success fade show" role="alert">
         <div class="alert-icon"><i class="flaticon-warning"></i></div>
@@ -39,9 +38,11 @@
             @endforeach
         </div>
         <div class="alert-close">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true"><i class="la la-close"></i></span>
-            </button>
+            @if (Route::currentRouteName() != 'login')
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true"><i class="la la-close"></i></span>
+                </button>
+            @endif
         </div>
     </div>
     @php
@@ -49,7 +50,7 @@
     @endphp
 @endif
 
-{{-- @if (session()->has('errors'))
+@if (session()->has('errors'))
 <div class="alert alert-outline-danger fade show" role="alert">
 	<div class="alert-text">
 			@foreach($errors->all() as $e)
@@ -69,4 +70,4 @@
 @php
 	Session::forget('errors');
 @endphp
-@endif --}}
+@endif

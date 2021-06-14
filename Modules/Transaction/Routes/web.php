@@ -10,6 +10,7 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::post('guest/transaction/store', 'TransactionController@store')->name('guest.transaction.store');
 
 Route::prefix('transaction')->middleware('validate_session')->group(function() {
     Route::get('list/{status}', 'TransactionController@index')->name('transaction.list')->middleware('feature_control:transaction_list');

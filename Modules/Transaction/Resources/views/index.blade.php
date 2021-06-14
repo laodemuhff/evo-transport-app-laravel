@@ -617,7 +617,9 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-success">Submit</button>
+                            @if ($status == 'pending')
+                                <button type="submit" class="btn btn-success">Submit</button>
+                            @endif
                         </div>
                     </form>
                 </div>
