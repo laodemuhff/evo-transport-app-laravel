@@ -16,7 +16,7 @@ html {
 header{
     height: 100vh;
     width: 100%;
-    background-color:rgba(206, 76, 16, 0.75);
+    background-color: #1E1E2D;
     background-image: url("login-bg.png");
     background-repeat: no-repeat;
     background-size: cover;
@@ -73,7 +73,7 @@ header{
 .main-header button {
     padding:  1rem 3rem;
     font-size: 1.2rem;
-    background: #1E1E2D;
+    background: rgba(206, 76, 16, 0.75);
     color: #fff;
     border: none;
     border-radius: 50px;

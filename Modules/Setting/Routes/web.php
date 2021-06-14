@@ -19,7 +19,7 @@ Route::prefix('setting')->middleware('validate_session')->group(function() {
     });
 
     Route::prefix('wordings')->middleware('feature_control:setting_wordings')->group(function() {
-        Route::get('/', 'WordingsController@index')->name('setting.wordings');
-        Route::post('update', 'WordingsController@update')->name('setting.wordings.update');
+        Route::get('/', 'AppWordingsController@index')->name('setting.wordings');
+        Route::post('update', 'AppWordingsController@update')->name('setting.wordings.update');
     });
 });

@@ -120,19 +120,19 @@
                             </a>
                         </li>
                     @endif
-                    @if(adminFeature(['armada_create']))
+                    {{-- @if(adminFeature(['armada_create']))
                         <li class="kt-menu__item {{ Request::route()->getName() == 'armada.create' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
                             <a href="{{route('armada.create')}}" class="kt-menu__link ">
                                 <i class="kt-menu__link-bullet kt-menu__link-bullet--line"><span></span></i>
                                 <span class="kt-menu__link-text">Add Armada</span>
                             </a>
                         </li>
-                    @endif
+                    @endif --}}
                     @if(adminFeature(['armada_list','armada_update','armada_delete']))
                         <li class="kt-menu__item {{ Request::route()->getName() == 'armada.list' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
                             <a href="{{route('armada.list')}}" class="kt-menu__link ">
                                 <i class="kt-menu__link-bullet kt-menu__link-bullet--line"><span></span></i>
-                                <span class="kt-menu__link-text">List Armada</span>
+                                <span class="kt-menu__link-text">Armada</span>
                             </a>
                         </li>
                     @endif
@@ -141,69 +141,12 @@
         </li>
     @endif
 
-    <li class="kt-menu__item  kt-menu__item--submenu @yield('driver')" aria-haspopup="true" data-ktmenu-submenu-toggle="hover">
-        <a href="javascript:;" class="kt-menu__link kt-menu__toggle">
-            <i class="kt-menu__link-icon flaticon-car"></i>
-            <span class="kt-menu__link-text">Driver</span>
-            <i class="kt-menu__ver-arrow la la-angle-right"></i>
+    <li class="kt-menu__item {{ Request::route()->getName() == 'driver.list' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
+        <a href="{{route('driver.list')}}" class="kt-menu__link ">
+            <i class="kt-menu__link-icon flaticon-car"></i><span class="kt-menu__link-text">Driver</span>
         </a>
-        <div class="kt-menu__submenu "><span class="kt-menu__arrow"></span>
-            <ul class="kt-menu__subnav">
-                <li class="kt-menu__item  kt-menu__item--parent" aria-haspopup="true">
-                    <span class="kt-menu__link">
-                        <span class="kt-menu__link-text">
-                            Driver
-                        </span>
-                    </span>
-                </li>
-                <li class="kt-menu__item {{ Request::route()->getName() == 'driver.list' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
-                    <a href="{{route('driver.list')}}" class="kt-menu__link ">
-                        <i class="kt-menu__link-bullet kt-menu__link-bullet--line"><span></span></i>
-                        <span class="kt-menu__link-text">List Driver</span>
-                    </a>
-                </li>
-                <li class="kt-menu__item {{ Request::route()->getName() == 'driver.assign' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
-                    <a href="{{route('driver.assign')}}" class="kt-menu__link ">
-                        <i class="kt-menu__link-bullet kt-menu__link-bullet--line"><span></span></i>
-                        <span class="kt-menu__link-text">Assign Driver</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
     </li>
 
-
-    <li class="kt-menu__item  kt-menu__item--submenu @yield('syarat_dan_jaminan')" aria-haspopup="true" data-ktmenu-submenu-toggle="hover">
-        <a href="javascript:;" class="kt-menu__link kt-menu__toggle">
-            <i class="kt-menu__link-icon la la-paperclip" style="font-size: 1.6em"></i>
-            <span class="kt-menu__link-text">Syarat & Jaminan</span>
-            <i class="kt-menu__ver-arrow la la-angle-right"></i>
-        </a>
-        <div class="kt-menu__submenu "><span class="kt-menu__arrow"></span>
-            <ul class="kt-menu__subnav">
-                <li class="kt-menu__item  kt-menu__item--parent" aria-haspopup="true">
-                    <span class="kt-menu__link">
-                        <span class="kt-menu__link-text">
-                            Syarat & Jaminan
-                        </span>
-                    </span>
-                </li>
-                {{-- <li class="kt-menu__item {{ Request::route()->getName() == 'driver_create' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
-                    <a href="{{route('driver.create')}}" class="kt-menu__link ">
-                        <i class="kt-menu__link-bullet kt-menu__link-bullet--line"><span></span></i>
-                        <span class="kt-menu__link-text">Add Syarat & Jaminan</span>
-                    </a>
-                </li>
-                <li class="kt-menu__item {{ Request::route()->getName() == 'driver_list' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
-                    <a href="{{route('driver.list')}}" class="kt-menu__link ">
-                        <i class="kt-menu__link-bullet kt-menu__link-bullet--line"><span></span></i>
-                        <span class="kt-menu__link-text">List Syarat & Jaminan</span>
-                    </a>
-                </li> --}}
-            </ul>
-        </div>
-    </li>
-    
     <li class="kt-menu__item  kt-menu__item--submenu @yield('transaction')" aria-haspopup="true" data-ktmenu-submenu-toggle="hover"><a href="javascript:;" class="kt-menu__link kt-menu__toggle"><i class="kt-menu__link-icon la la-cart-plus" style="font-size: 1.6em"></i><span class="kt-menu__link-text">Transaction</span><i class="kt-menu__ver-arrow la la-angle-right"></i></a>
         <div class="kt-menu__submenu "><span class="kt-menu__arrow"></span>
             <ul class="kt-menu__subnav">
@@ -217,27 +160,19 @@
                                         <span></span>
                                     </i>
                                     <span class="kt-menu__link-text">Pending</span>
-                                    <span class="kt-menu__link-badge">
-                                        <span class="kt-badge kt-badge--warning kt-badge--inline" style="color:white">13 fleet</span>
+                                    <span id="notif_pending_class_1">
+                                        <span id="notif_pending_class_2" style="color:white"></span>
                                     </span>
                                 </a>
                             </li>
-                            <li class="kt-menu__item @yield('transaction_list_cancelled')" aria-haspopup="true">
-                                <a href="{{ route('transaction.list', 'cancelled') }}" class="kt-menu__link ">
-                                    <i class="kt-menu__link-bullet kt-menu__link-bullet--dot">
-                                        <span></span>
-                                    </i>
-                                    <span class="kt-menu__link-text">Cancelled</span>
-                                </a>
-                            </li>
                             <li class="kt-menu__item @yield('transaction_list_on_rent')" aria-haspopup="true">
-                                <a href="{{ route('transaction.list', 'on_rent') }}" class="kt-menu__link ">
+                                <a href="{{ route('transaction.list', 'on_rent') }}" class="kt-menu__link " id="menu_onrent">
                                     <i class="kt-menu__link-bullet kt-menu__link-bullet--dot">
                                         <span></span>
                                     </i>
                                     <span class="kt-menu__link-text">On Rent</span>
-                                    <span class="kt-menu__link-badge">
-                                        <span class="kt-badge kt-badge--success kt-badge--inline">5 fleet</span>
+                                    <span id="notif_onrent_class_1">
+                                        <span id="notif_onrent_class_2" style="color:white"></span>
                                     </span>
                                 </a>
                             </li>
@@ -247,6 +182,14 @@
                                         <span></span>
                                     </i>
                                     <span class="kt-menu__link-text">Success</span>
+                                </a>
+                            </li>
+                            <li class="kt-menu__item @yield('transaction_list_cancelled')" aria-haspopup="true">
+                                <a href="{{ route('transaction.list', 'cancelled') }}" class="kt-menu__link ">
+                                    <i class="kt-menu__link-bullet kt-menu__link-bullet--dot">
+                                        <span></span>
+                                    </i>
+                                    <span class="kt-menu__link-text">Cancelled</span>
                                 </a>
                             </li>
                         </ul>
@@ -262,6 +205,14 @@
                 </li>
             </ul>
         </div>
+    </li>
+
+
+    <li class="kt-menu__item  {{ Request::route()->getName() == 'transaction.requirements' ? 'kt-menu__item--active' : ''}}" aria-haspopup="true">
+        <a href="{{ route('transaction.requirements') }}" class="kt-menu__link ">
+            <i class="kt-menu__link-icon la la-paperclip" style="font-size: 1.6em"></i>
+            <span class="kt-menu__link-text">Syarat & Jaminan</span>
+        </a>
     </li>
 @endif
 {{-- END::Route Armada --}}
@@ -284,11 +235,11 @@
         </li>
     @endif
 
-    <li class="kt-menu__item {{ Request::route()->getName() == 'setting.wordings' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
+    {{-- <li class="kt-menu__item {{ Request::route()->getName() == 'setting.wordings' ? 'kt-menu__item--active' : '' }}" aria-haspopup="true">
         <a href="{{route('setting.wordings')}}" class="kt-menu__link ">
             <i class="kt-menu__link-icon la la-font" style="font-size: 1.6em"></i><span class="kt-menu__link-text">App Wordings</span>
         </a>
-    </li>
+    </li> --}}
 
 @endif
 {{-- END::Route SETTING --}}

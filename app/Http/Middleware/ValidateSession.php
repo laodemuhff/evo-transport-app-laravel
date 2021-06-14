@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use Illuminate\Support\Facades\Route;
 use Closure;
 
 class ValidateSession
@@ -17,7 +18,11 @@ class ValidateSession
     {
         if(session()->has('access_token'))
             return $next($request);
-        else
-            return redirect('login')->withErrors('Please login.');
+        else{
+            if(Route::currentRouteName() != 'admin.dashboard')
+                return redirect('login')->withErrors('Please login.');
+            else
+                return redirect('login');
+        }
     }
 }

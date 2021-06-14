@@ -20,20 +20,76 @@
     <link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
 @endsection
 @section('content')
+      {{-- Search Path --}}
+      <div class="kt-portlet">
+        <div class="kt-portlet__body" style="padding-bottom: 0">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group ">
+                        <label>Nama Tipe</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="tipe" id="tipe" placeholder="e.g:Avanza">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group ">
+                        <label>Kapasitas</label>
+                        <div class="input-group">
+                            <select class="form-control" name="kapasitas_penumpang" id="kapasitas_penumpang">
+                                <option value="">All</option>
+                                <option value="<= 5"><= 5</option>
+                                <option value="> 5">> 5</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group ">
+                        <label>Tipe Kemudi</label>
+                        <div class="input-group">
+                            <select class="form-control" name="tipe_kemudi" id="tipe_kemudi">
+                                <option value="">All</option>
+                                @foreach ($tipe_kemudi as $item)
+                                    <option value="{{$item}}">{{$item}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer col-md-12">
+                <div class="pull-right">
+                    <button id="reset" class="btn btn-secondary btn-sm">
+                        <i class="flaticon2-refresh-button"></i> Reset
+                    </button>
+                    <button id="search" class="btn btn-info btn-sm">
+                        <i class="flaticon-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Body Path --}}
     <div class="kt-portlet">
         <div class="kt-portlet__body">
             @include('layouts.notification')
             <div class="row">
-                <div class="col-md-2">
-                    <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#addTipeArmada"><i class="la la-plus"></i></a>
+                <div class="col-md-3">
+                    <a href="{{route('tipe_armada.create')}}" class="btn btn-primary btn-sm"><i class="la la-plus"></i> Add Tipe Armada</a>
                 </div>
             </div>
             <table id="datatable" class="table table-hover" style="width:100%">
                 <thead>
                     <tr>
                         <th>No</th>
+                        <td>Gambar</td>
                         <th>Tipe Armada</th>
+                        <th>Kapasitas</th>
+                        <th>Tipe Kemudi</th>
+                        <th>Tarif 24 Jam</th>
+                        <th>Tarif 12 Jam</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -44,72 +100,7 @@
             {{-- <div class="kt-separator kt-separator--dashed"></div> --}}
         </div>
     </div>
-
     <!-- Button trigger modal -->
-    
-    <!-- Modal Store -->
-    <form action="{{ route('tipe_armada.store') }}" method="POST">
-        @csrf
-        <div class="modal fade" id="addTipeArmada" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Add Tipe Armada</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group row">
-                            <div class="col-md-4">
-                                <label for="" class="col-form-label">Tipe</label>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="text" name="tipe" class="form-control" placeholder="Masukkan Tipe" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </form>
-
-    <!-- Modal Update -->
-    @foreach ($tipe_armada as $item)
-    <form action="{{ route('tipe_armada.update', [encSlug($item['id'])] ) }}" method="POST">
-        @csrf
-        <div class="modal fade" id="updateTipeArmada{{$item['id']}}" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Update Tipe Armada</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group row">
-                            <div class="col-md-4">
-                                <label for="" class="col-form-label">Tipe</label>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="text" name="tipe" class="form-control" placeholder="Masukkan Tipe" value="{{ $item['tipe'] }}" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </form>
-    @endforeach
 @endsection
 @section('scripts')
     <script src="{{ asset('assets/js/helper.js') }}" type="text/javascript"></script>
@@ -129,7 +120,27 @@
             ajax: "{{ route('tipe_armada.table') }}",
             columns: [
                 {data: 'DT_RowIndex', name: 'id', searchable: false, orderable: false},
+                {data: 'photo', name: 'photo',
+                    render: function (data, type, full, meta) {
+                        return "<img src=\"{{url('')}}/"+ data +"\" height=\"50\"/>";
+                    },
+                },
                 {data: 'tipe', name: 'tipe_armada'},
+                {data: 'kapasitas_penumpang', name: 'kapasitas_penumpang'},
+                {data: 'tipe_kemudi', name: 'tipe_kemudi'},
+                {data: 'price', name: 'price',
+                    render: function (data, type, full, meta) {
+                        return 'Rp '+number_format(data, 0, ',', '.');
+                    },
+                },
+                {data: 'price12', name: 'price12',
+                    render: function (data, type, full, meta) {
+                        if(data != undefined){
+                            return 'Rp '+number_format(data, 0, ',', '.');
+                        }
+                        return '-';
+                    },
+                },
                 {data: 'action', name: 'action', searchable: false, orderable: false}
             ]
         });
@@ -192,5 +203,75 @@
                 }
             });
         });
+    </script>
+    <script>
+        $(document).on('click', '#search', function() {
+            var tipe    = $('#tipe').val();
+            var kapasitas_penumpang   = $('#kapasitas_penumpang').val();
+            var tipe_kemudi   = $('#tipe_kemudi').val();
+
+            console.log(tipe+ ' ' + kapasitas_penumpang + ' ' +tipe_kemudi)
+
+            search(tipe, kapasitas_penumpang, tipe_kemudi);
+        });
+
+        $(document).on('click', '#reset', function(){
+            reset();
+            search();
+        });
+
+        function search(tipe = '', kapasitas_penumpang = '', tipe_kemudi = '') {
+            // $.fn.dataTable.ext.errMode = 'none';
+
+            var table = $('#datatable').DataTable({
+                responsive: true,
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                "bFilter": false,
+                "lengthChange": false,
+                ajax: {
+                    url: "{{ route('tipe_armada.table') }}",
+                    type: 'get',
+                    data: function(d) {
+                        d.tipe = tipe;
+                        d.kapasitas_penumpang = kapasitas_penumpang;
+                        d.tipe_kemudi = tipe_kemudi;
+                    }
+                },
+                columns: [
+                    {data: 'DT_RowIndex', name: 'id', searchable: false, orderable: false},
+                    {data: 'photo', name: 'photo',
+                        render: function (data, type, full, meta) {
+                            return "<img src=\"{{url('')}}/"+ data +"\" height=\"50\"/>";
+                        },
+                    },
+                    {data: 'tipe', name: 'tipe_armada'},
+                    {data: 'kapasitas_penumpang', name: 'kapasitas_penumpang'},
+                    {data: 'tipe_kemudi', name: 'tipe_kemudi'},
+                    {data: 'price', name: 'price',
+                        render: function (data, type, full, meta) {
+                            return 'Rp '+number_format(data, 0, ',', '.');
+                        },
+                    },
+                    {data: 'price12', name: 'price12',
+                        render: function (data, type, full, meta) {
+                            if(data != undefined){
+                                return 'Rp '+number_format(data, 0, ',', '.');
+                            }
+                            return '-';
+                        },
+                    },
+                    {data: 'action', name: 'action', searchable: false, orderable: false}
+                ]
+            });
+        }
+
+        function reset() {
+            $('#tipe').val('');
+            $('#kapasitas_penumpang').val('');
+            $('#tipe_kemudi').val('');
+            $('#search').val('').trigger('change');
+        }
     </script>
 @endsection

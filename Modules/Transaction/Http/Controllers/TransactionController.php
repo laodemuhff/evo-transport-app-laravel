@@ -8,70 +8,34 @@ use Illuminate\Routing\Controller;
 use App\Models\Transaction;
 use App\Models\TipeArmada;
 use App\Models\Armada;
+use App\Models\Driver;
+use App\Models\Setting;
 use App\Lib\MyHelper;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
+use Validator;
+use Illuminate\Validation\Rule;
+use Auth;
+use Illuminate\Support\Facades\Crypt;
 
 class TransactionController extends Controller
 {
-    public function create()
-    {
-        $data['tipe_armada'] = TipeArmada::with('armada')->get()->toArray();
-        $data['status_lepas_kunci'] = Transaction::getEnumValues('status_lepas_kunci');
-        $data['status_pengambilan'] = Transaction::getEnumValues('status_pengambilan');
-
-        return view('transaction::create', $data);
-    }
-
-    public function store(Request $request){
-        DB::beginTransaction();
-        $post = $request->except('_token');
-
-        $request->validate([
-            'id_tipe_armada' => 'required',
-            'kode_armada' => 'required|unique:armadas,kode_armada',
-            'status_armada' => 'required',
-            'status_driver' => 'required',
-            'price' => 'required',
-            'photo' => 'required|image'
-        ]);
-
-        //dd($post);
-        try {
-            $result = MyHelper::uploadImagePublic('\image\armada\\');
-
-            if(isset($result['status']) && $result['status'] == 'success'){
-                $post['photo'] = asset(str_replace('\\', '/', $result['filename']));
-                $post['price'] = str_replace(['Rp', ','], '', $post['price']);
-                Armada::create($post);
-
-                DB::commit();
-                return redirect()->back()->with('success',['Success add armada']);
-
-            }else{
-                DB::rollback();
-                return redirect()->back()->withErrors('create armada failed');
-            }
-        } catch (\Throwable $th) {
-            DB::rollback();
-            return redirect()->back()->withErrors('Galat : '.$th->getMessage());
-        }
-
-    }
 
     public function index($status){
         $data['transaction'] = Transaction::with(['armada' => function($query){
                 $query->with('tipe_armada');
             }
-        ])
-        ->where('status_transaksi', $status)
+        , 'driver'])
+        ->where('status_transaksi', str_replace('_', ' ', $status))
         ->where('is_deleted', 0)
         ->get();
 
+        $data['driver'] = Driver::all();
         $data['tipe_armada'] = TipeArmada::all()->toArray();
         $data['status_lepas_kunci'] = Transaction::getEnumValues('status_lepas_kunci');
         $data['status_pengambilan'] = Transaction::getEnumValues('status_pengambilan');
         $data['status'] = $status;
+
 
         return view('transaction::index', $data);
     }
@@ -79,10 +43,10 @@ class TransactionController extends Controller
     public function table(Request $request, $status){
         $post = $request->all();
 
-        $data = Transaction::select('transactions.*', 'armadas.kode_armada as kode_armada', 'armadas.price as harga_sewa', 'tipe_armadas.tipe as tipe_armada')
+        $data = Transaction::select('transactions.*', 'armadas.kode_armada as kode_armada', 'tipe_armadas.tipe as tipe_armada')
                             ->join('armadas', 'armadas.id', 'transactions.id_armada')
                             ->join('tipe_armadas', 'tipe_armadas.id', 'armadas.id_tipe_armada')
-                            ->where('status_transaksi', $status)
+                            ->where('status_transaksi', str_replace('_',' ',$status))
                             ->where('is_deleted', 0);
 
         if (isset($post['nama_customer']))
@@ -90,37 +54,46 @@ class TransactionController extends Controller
 
         if (isset($post['alamat_customer']))
             $data->where('alamat_customer', 'LIKE', '%'.$post['alamat_customer'].'%');
-            
+
         if (isset($post['no_hp_customer']))
             $data->where('no_hp_customer', 'LIKE', '%'.$post['no_hp_customer'].'%');
 
         if (isset($post['nomor_faktur']))
             $data->where('nomor_faktur', 'LIKE', '%'.$post['nomor_faktur'].'%');
-            
-        if (isset($post['tipe_armada']))
-            $data->where('tipe_armada', $post['tipe_armada']);
 
         if (isset($post['durasi_sewa']))
             $data->where('durasi_sewa', $post['durasi_sewa']);
 
         if (isset($post['pickup_date']))
-            $data->where('pickup_date', $post['pickup_date']);
+            $data->whereDate('pickup_date', $post['pickup_date']);
 
-        if (isset($post['status_lepas_kunci']))
-            $data->where('status_lepas_kunci', $post['status_lepas_kunci']);
+        if (isset($post['status_lepas_kunci'])){
+            if($post['status_lepas_kunci'] == 'none'){
+                $data->whereNull('status_lepas_kunci');
+            }else{
+                $data->where('status_lepas_kunci', $post['status_lepas_kunci']);
+            }
+        }
 
-        if (isset($post['status_pengambilan']))
-            $data->where('status_pengambilan', $post['status_pengambilan']);
+        if (isset($post['status_pengambilan'])){
+            if($post['status_pengambilan'] == 'none'){
+                $data->whereNull('status_pengambilan');
+            }else{
+                $data->where('status_pengambilan', $post['status_pengambilan']);
+            }
+        }
 
-        $data = $data->orderBy('updated_at','desc')->get();
+        $data = $data->orderBy('created_at','desc')->get()->toArray();
+
+        if (isset($post['tipe_armada'])){
+            $data = array_filter($data, function($item) use($post){
+                return $item['tipe_armada'] == $post['tipe_armada'];
+            });
+        }
 
         return DataTables::of($data)
             ->addColumn('action', function ($data) {
-                if($data['status_lepas_kunci'] == null){
-                    return "<a href='".route('transaction.edit',[encSlug($data['id'])])."' class='btn btn-warning btn-sm' style='color: white; width:35px; padding: 8px !important' title='edit ".$data['nomor_faktur']."'><i class='la la-edit'></i></a><a href='".route('transaction.delete',[encSlug($data['id'])])."' class='btn btn-danger btn-sm btn-delete' title='hapus ".$data['nomor_faktur']."' style='width:35px; padding: 8px !important'><i class='la la-trash'></i></a><a href='#' class='btn btn-info btn-sm' style='color: white; width:35px; padding: 8px !important' data-toggle='modal' data-target='#detailTrx".$data['id']."' title='detail ".$data['nomor_faktur']."'><i class='la la-eye'></i></a><a href='".route('transaction.assign.driver',[encSlug($data['id'])])."' class='btn btn-success btn-sm btn-success' title='assign to driver' style='width:35px; padding: 8px !important'><i class='la la-user'></i></a>";
-                }else{
-                    return "<a href='".route('transaction.edit',[encSlug($data['id'])])."' class='btn btn-warning btn-sm' style='color: white; width:35px; padding: 8px !important' title='edit ".$data['nomor_faktur']."'><i class='la la-edit'></i></a><a href='".route('transaction.delete',[encSlug($data['id'])])."' class='btn btn-danger btn-sm btn-delete' title='hapus ".$data['nomor_faktur']."' style='width:35px; padding: 8px !important'><i class='la la-trash'></i></a><a href='#' class='btn btn-info btn-sm' style='color: white; width:35px; padding: 8px !important' data-toggle='modal' data-target='#detailTrx".$data['id']."' title='detail ".$data['nomor_faktur']."'><i class='la la-eye'></i></a>";
-                }
+                return view('transaction::action', ['data' => $data]);
                 // return "<a href='".route('admin.brand.edit', [$data['id'], $data['email']])."'><i class='fa fa-edit text-warning'></i></a> | <a href='".route('admin.brand.destroy', [$data['id'], $data['email']])."' class='btn-delete' title=".$data['name']."><i class='fa fa-trash text-danger'></i></a>";
             })
             ->addColumn('kode_armada', function($data){
@@ -129,73 +102,374 @@ class TransactionController extends Controller
             ->addColumn('tipe_armada', function($data){
                 return $data['tipe_armada'];
             })
-            ->addColumn('harga_sewa', function($data){
-                return $data['harga_sewa'];
+            ->addColumn('status_lepas_kunci', function($data){
+                if($data['status_lepas_kunci'] == 'off key')
+                    return 'Lepas Kunci';
+                else
+                    return 'Mobil + Driver';
+            })
+            ->addColumn('status_pengambilan', function($data){
+                if($data['status_pengambilan'] == 'taken in place')
+                    return 'Ambil di Tempat';
+                else
+                    return 'Dikirimkan';
             })
             ->addIndexColumn()
             ->rawColumns(['action'])
             ->make(true);
     }
 
-    public function edit($id){
-        $id = decSlug($id);
-        $armada = Armada::where('id', $id)->first();
+    public function create()
+    {
+        $data['tipe_armada'] = array_filter(TipeArmada::with(['armada' => function($query){
+                                    $query->where('status_armada', 'ready');
+                                }])->get()->toArray(), function($item){
+                                    return !empty($item['armada']);
+                                });
 
-        if ($armada) {
-            $data['armada'] = $armada;
-            $data['tipe_armada'] = TipeArmada::all()->toArray();
-            $data['status_armada'] = Armada::getEnumValues('status_armada');
-            $data['status_driver'] = Armada::getEnumValues('status_driver');
-        }
+        // $data['tipe_armada'] = array();
+        // foreach($tipe_armada as $tipe){
+        //     $data['tipe_armada'][$tipe['tipe']] = $tipe['armada'];
+        // }
 
-        return view('armada::edit', $data);
+        $data['price_pengambilan_dikirim'] = Setting::where('key', 'tambahan_harga_pengambilan_dikirim')->first()['value'] ?? 0;
+        $data['status_lepas_kunci'] = Transaction::getEnumValues('status_lepas_kunci');
+        $data['status_pengambilan'] = Transaction::getEnumValues('status_pengambilan');
+        // dd($data);
+        return view('transaction::create', $data);
     }
 
-    public function update(Request $request, $id){
+    public function store(Request $request){
         DB::beginTransaction();
-        $post = $request->except("_token");
-        
-        $id = decSlug($id);
+        $post = $request->except('_token');
+
+        // dd($post);
+        $post['pickup_date'] = Self::format_date($post['pickup_date']);
+
+        $rules = [
+            'nama_customer'      => [ 'required' ],
+            'alamat_customer'    => [ 'required' ],
+            'no_hp_customer'     => [ 'required', 'unique:transactions,no_hp_customer', 'phone_number_indo', 'min:11', 'max:13'],
+            'durasi_sewa'        => [ 'required', 'numeric' ],
+            'pickup_date'        => [ 'required', 'date' ],
+            'status_lepas_kunci' => [ Rule::in([null, 'off key', 'with driver']) ],
+            'status_pengambilan' => [ Rule::in([null, 'taken in place', 'send out car']) ],
+        ];
+
+        if(!empty($post['id_armada'])){
+            $rules['id_armada'] = [ 'required', 'numeric' ];
+        }else{
+            $cek_armada = Armada::where('id_tipe_armada', $post['tipe_armada'])->where('status_armada', 'ready')->first();
+
+            if($cek_armada){
+                $post['id_armada'] = $cek_armada['id'];
+            }else{
+                $request->flash();
+                return redirect()->back()->withErrors('Out of Armadas');
+            }
+        }
+
+        $messages = [
+            'no_hp_customer.phone_number_indo' => ':attribute must begin with 08 or 62',
+            'status_lepas_kunci.in' => ':attribute is not included on the list',
+            'status_pengambilan.in' => ':attribute is not included on the list'
+        ];
+
+        $validator = Validator::make($post, $rules, $messages);
+
+        if(!empty($validator->errors()->messages())){
+            $request->flash();
+            return redirect()->back()->withErrors($validator->errors()->messages());
+        }
 
         try {
-            if(isset($post['photo'])){
-                $result = MyHelper::uploadImagePublic('\image\armada\\');
-            }else{
-                $result['status'] = 'success';
+            $last_order = Transaction::orderBy('created_at', 'desc')->first()['nomor_faktur'] ?? null;
+            $post['nomor_faktur'] = MyHelper::generateNomorFaktur($last_order);
+            $post['status_transaksi'] = 'pending';
+            $post['return_date'] = date('Y-m-d H:i:s', strtotime('+'.$post['durasi_sewa'].' hours', strtotime($post['pickup_date'])));
+            // dd($post);
+
+            $request_cek_harga = new \Illuminate\Http\Request();
+
+            $request_cek_harga->replace([
+                'id_tipe_armada' => $post['tipe_armada'],
+                'durasi' => $post['durasi_sewa'],
+                'status_pengambilan' => $post['status_pengambilan'],
+                'status_lepas_kunci' => $post['status_lepas_kunci']
+            ]);
+
+            $post['grand_total'] = json_decode(json_encode(Self::cekHargaSewa($request_cek_harga)), true)['original']['grand_total_real'] ?? null;
+
+            if(empty($post['grand_total'])){
+                $request->flash();
+                return redirect()->back()->withErrors('create transaction failed');
             }
 
-            if(isset($result['status']) && $result['status'] == 'success'){
-                if(isset($post['photo'])){
-                    $post['photo'] = asset(str_replace('\\', '/', $result['filename']));
-                }
-                $post['price'] = str_replace(['Rp', ','], '', $post['price']);
-                
-                $armada = Armada::where('id',$id)->update($post);
+            unset($post['tipe_armada']);
+            $store_transaction = Transaction::create($post);
+
+            if($store_transaction){
+
+                Armada::where('id', $post['id_armada'])->update([
+                    'status_armada' => 'not ready'
+                ]);
 
                 DB::commit();
-                return redirect()->back()->with('success',['Success update armada']);
+
+                if(!empty($post['guest_booking'])){
+                    return redirect('prasyarat?no_faktur='.Crypt::encryptString($post['nomor_faktur']))->with('success', ['Success create transaction']);
+                }
+
+                return redirect()->back()->with('success',['Success create transaction']);
+
             }else{
+                $request->flash();
                 DB::rollback();
-
-                if(isset($result['message'])) return redirect()->back()->withErrors($result['message']);
-
-                return redirect()->back()->withErrors('update armada failed');
+                return redirect()->back()->withErrors('create transaction failed');
             }
         } catch (\Throwable $th) {
+            $request->flash();
             DB::rollback();
             return redirect()->back()->withErrors('Galat : '.$th->getMessage());
         }
+
+    }
+
+    public static function cekHargaSewa(Request $request){
+        $id_tipe_armada  = $request->id_tipe_armada;
+        $durasi = $request->durasi;
+        $status_pengambilan = $request->status_pengambilan;
+        $status_lepas_kunci = $request->status_lepas_kunci;
+
+        $total = 0;
+
+        $tipe_armada = TipeArmada::find($id_tipe_armada);
+
+        if($durasi % 24 == 0){
+            $days = $durasi / 24;
+            $half_days = 0;
+        }
+        else{
+            $days = floor($durasi / 24);
+            $half_days = 1;
+        }
+
+        if($status_lepas_kunci == 'with driver'){
+            $price12 = $tipe_armada['price_driver12'];
+            $price24 = $tipe_armada['price_driver'];
+        }else{
+            $price12 = $tipe_armada['price12'];
+            $price24 = $tipe_armada['price'];
+        }
+
+        $grand_total = ($price24 * $days) + ($price12 * $half_days);
+
+        $tambahan_pengiriman_mobil = 0;
+        if($status_pengambilan == 'send out car'){
+            $tambahan_pengiriman_mobil = Setting::where('key', 'tambahan_harga_pengambilan_dikirim')->first()['value'] ?? 0;
+            $grand_total += $tambahan_pengiriman_mobil;
+        }
+
+        $durasi = '';
+
+        if($days > 0)
+            $durasi .= $days.' Days';
+
+        if($half_days > 0){
+            if($days > 0)
+                $durasi .= ' And ';
+
+            $durasi .= '12 Hour';
+        }
+
+        $response = [
+            'grand_total_real' => $grand_total,
+            'grand_total' => 'Rp '.number_format($grand_total,0,',','.'),
+            'price12' => 'Rp '.number_format($price12,0,',','.').'<b> x '.$half_days.'</b>',
+            'price24' => 'Rp '.number_format($price24,0,',','.').'<b> x '.$days.'</b>',
+            'durasi' => $durasi,
+            'status_lepas_kunci' => $status_lepas_kunci == 'off key' ? 'Lepas Kunci' : 'Mobil + Driver',
+            'status_pengambilan' => $status_pengambilan == 'taken in place' ? 'Ambil di Tempat' : 'Mobil Dikirimakn',
+            'penambahan_harga' =>  'Rp '.number_format($tambahan_pengiriman_mobil,0,',','.')
+        ];
+
+        return response()->json($response);
     }
 
     public function delete($id){
         $id = decSlug($id);
-        return Armada::destroy($id);
+        return Transaction::where('id', $id)->update(['is_deleted' => 1]);
     }
 
-    public function generateRandomCode(Request $request){
-        $id = str_replace(' ', '', $request->get('id'));
-        $code = $id.'-'.MyHelper::createrandom(4, null, '123456789');
+    public function confirmRent(Request $request){
+        $post = $request->all();
 
-        return response()->json(['code' => $code]);
+        $tr = Transaction::where('id', $post['id']);
+
+        $id_driver = (clone $tr)->first()['id_driver'] ?? null;
+
+        $on_rent = Transaction::where('id_driver', $id_driver)->where('status_transaksi', 'on rent')->first();
+
+        if(!empty($id_driver)){
+            if(!$on_rent){
+                // cek tanggal yang di confirm
+                $pickup_date = (clone $tr)->first()['pickup_date'];
+                $nearest_date = Transaction::where('id_driver', $id_driver)->where('status_transaksi', 'pending')->where('id', '!=', $post['id'])->orderBy('pickup_date', 'asc')->first();
+
+                if(!empty($nearest_date)){
+                    if(strtotime($pickup_date) > strtotime($nearest_date['pickup_date'])){
+                        return redirect()->back()->withErrors('Please make sure to assign driver sequentially by date, To Continue Please Review the '.$nearest_date['nomor_faktur']);
+                    }
+                }
+            }else{
+                return redirect()->back()->withErrors('Driver On Rent at '.$on_rent['nomor_faktur']);
+            }
+        }
+
+        $update = (clone $tr)->update(['status_transaksi' => 'on rent']);
+
+        if($update){
+            return redirect('transaction/list/on_rent')->with('success',['Transaction is successfully confirmed']);
+        }else{
+            return redirect()->back()->withErrors('Failed to confirm transaction');
+        }
+    }
+
+    public function cancelRent(Request $request){
+        $post = $request->except('_token');
+
+        $transaction = Transaction::where('id', $post['id']);
+
+        $post['status_transaksi'] = 'cancelled';
+        $post['cancelled_by'] = Auth::user()->email;
+        $update = $transaction->update($post);
+
+        if($update){
+            $transaction = $transaction->first();
+            Armada::where('id', $transaction['id_armada'])->update([
+                'status_armada' => 'ready'
+            ]);
+            return redirect('transaction/list/cancelled')->with('success',['Transaction is successfully cancelled']);
+        }else{
+            return redirect()->back()->withErrors('Failed to cancel transaction');
+        }
+    }
+
+    public function successRent(Request $request){
+        $post = $request->except('_token');
+
+        $transaction = Transaction::where('id', $post['id']);
+
+        $post['status_transaksi'] = 'success';
+        $post['customer_return_date'] = date('Y-m-d H:i:s');
+        $update = $transaction->update($post);
+
+        if($update){
+            $transaction = $transaction->first();
+            Armada::where('id', $transaction['id_armada'])->update([
+                'status_armada' => 'ready'
+            ]);
+            return redirect('transaction/list/success')->with('success',['Transaction is successfully mark as returned']);
+        }else{
+            return redirect()->back()->withErrors('Failed to mark transaction as returned');
+        }
+    }
+
+    public function requirements(){
+        $data['requirements'] = Setting::where('key', 'syarat_dan_jaminan')->first()['value'];
+
+        return view('transaction::requirements', $data);
+    }
+
+    public function updateRequirements(Request $request){
+        $post = $request->except('_token');
+
+        $update = Setting::where('key', 'syarat_dan_jaminan')->update($post);
+
+        if($update){
+            return redirect()->back()->with('success', ['Succesfully Update Syarat & Jaminan']);
+        }else{
+            $request->flash();
+            return redirect()->back()->withErrors('Failed to update Syarat & Jaminan');
+        }
+    }
+
+    public function getNotif(){
+        $data['pending'] = Transaction::where('status_transaksi','pending')->where('is_deleted', 0)->get()->count();
+        $data['on_rent'] = Transaction::where('status_transaksi','on rent')->where('is_deleted', 0)->get()->count();
+
+        return response()->json($data);
+    }
+
+    public function format_date($datetimepicker_date){
+        $date = explode(' ', $datetimepicker_date);
+
+        $year = $date[2] ?? date('Y');
+        $day = $date[0] ?? date('d');
+        $time = $date[4] ?? date('H:i:s');
+
+        switch($date[1]){
+            case 'Jan' : $month = '01';break;
+            case 'Feb' : $month = '02';break;
+            case 'Mar' : $month = '03';break;
+            case 'Apr' : $month = '04';break;
+            case 'May' : $month = '05';break;
+            case 'Jun' : $month = '06';break;
+            case 'Jul' : $month = '07';break;
+            case 'Aug' : $month = '08';break;
+            case 'Sep' : $month = '09';break;
+            case 'Oct' : $month = '10';break;
+            case 'Nov' : $month = '11';break;
+            case 'Des' : $month = '12';break;
+            default : $month = date('m');
+        }
+
+        return $year.'-'.$month.'-'.$day.' '.$time;
+    }
+
+    public function assignDriver(Request $r){
+        $post = $r->all();
+
+        $cek_schedule = Self::isDriverAvailable($post['driver'], $post['id']);
+        if($cek_schedule['status']){
+            $update = Transaction::where('id', $post['id'])->update([
+                'id_driver' => $post['driver']
+            ]);
+
+            if($update){
+                return redirect()->back()->with('success', ['Succesfully Assigned Driver to Transaction']);
+            }
+
+            $r->flash();
+            return redirect()->back()->withErrors('Failed to Assign Driver!');
+        }
+
+        $r->flash();
+        return redirect()->back()->withErrors('Failed to Assign Driver! There is a Schedule Collision with '.$cek_schedule['collison_faktur']);
+    }
+
+    protected static function isDriverAvailable($id_driver, $id_transaction){
+        $tr = Transaction::find($id_transaction);
+
+        $pickup_dtr = $tr->pickup_date;
+        $return_dtr = $tr->return_date;
+
+        $found_driver = Transaction::where('id', '!=', $id_transaction)->where('id_driver', $id_driver)->whereIn('status_transaksi', ['pending', 'on rent']);
+
+        // if driver not found in transaction outside current transaction
+        if(!(clone $found_driver)->first()){
+            return ['status' => true];
+        }
+
+        foreach((clone $found_driver->get()) as $key => $item){
+            if  (   (strtotime($pickup_dtr) >= strtotime($item['pickup_date']) && strtotime($pickup_dtr) <= strtotime($item['return_date'])) ||
+                    (strtotime($return_dtr) >= strtotime($item['pickup_date']) && strtotime($return_dtr) <= strtotime($item['return_date']))
+                )
+                {
+                    return ['status' => false, 'collison_faktur' => $item['nomor_faktur']];
+                }
+        }
+
+        return ['status' => true];
     }
 }

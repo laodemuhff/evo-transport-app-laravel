@@ -7,7 +7,8 @@
 		<title>Evo Transport | @yield('title')</title>
 		<meta name="description" content="">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+		<meta name="csrf-token" content="{{ csrf_token() }}">
+		<meta name="base_url" content="{{ url('/') }}">
 
 		{{-- begin::Fonts --}}
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700|Asap+Condensed:500">
@@ -18,9 +19,10 @@
 		<link href="{{ asset('assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
 		<link href="{{ asset('assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
 		<link href="{{ asset('assets/css/custom_switch_button.css') }}" rel="stylesheet" type="text/css" />
+		<link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 		{{-- end::Global Theme Styles --}}
 
-        @yield('styles')
+		@yield('styles')
 	</head>
 
 	<!-- end::Head -->
@@ -69,7 +71,7 @@
 										<span class="kt-header__topbar-username kt-visible-desktop">
 											{{-- {{Auth::user()->name}} --}}
 										</span>
-										<img alt="Pic" src="{{ asset('assets/img/blank.png') }}" />
+										<img alt="Pic" src="{{ asset('image/user/user2.png') }}" />
 										<span class="kt-header__topbar-icon kt-bg-brand kt-hidden"><b>S</b></span>
 									</div>
 									<div class="dropdown-menu dropdown-menu-fit dropdown-menu-right dropdown-menu-anim dropdown-menu-xl">
@@ -77,7 +79,7 @@
 										<!--begin: Head -->
 										<div class="kt-user-card kt-user-card--skin-light kt-notification-item-padding-x">
 											<div class="kt-user-card__avatar">
-												<img class="kt-hidden-" alt="Pic" src="{{ asset('assets/img/blank.png') }}" />
+												<img class="kt-hidden-" alt="Pic" src="{{ asset('image/user/user2.png') }}" />
 
 												<!--use below badge element instead the user avatar to display username's first letter(remove kt-hidden class to display it) -->
 												<span class="kt-badge kt-badge--username kt-badge--unified-success kt-badge--lg kt-badge--rounded kt-badge--bold kt-hidden">S</span>
@@ -94,7 +96,7 @@
 
 										<!--begin: Navigation -->
 										<div class="kt-notification">
-											<a href="custom/apps/user/profile-1/personal-information.html" class="kt-notification__item">
+											<a href="{{route('admin.profile')}}" class="kt-notification__item">
 												<div class="kt-notification__item-icon">
 													<i class="flaticon2-calendar-3 kt-font-success"></i>
 												</div>
@@ -102,6 +104,7 @@
 													<div class="kt-notification__item-title kt-font-bold">
 														My Profile
 													</div>
+													<div id="clock">asdsad</div>
 													<div class="kt-notification__item-time">
 														Account settings and more
 													</div>
@@ -213,8 +216,42 @@
 		{{-- <!--begin::Global Theme Bundle(used by all pages) --> --}}
 		<script src="{{ asset('assets/plugins/global/plugins.bundle.js') }}" type="text/javascript"></script>
         <script src="{{ asset('assets/js/scripts.bundle.js') }}" type="text/javascript"></script>
-        {{-- <!--end::Global Theme Bundle --> --}}
-        @yield('scripts')
+		{{-- <!--end::Global Theme Bundle --> --}}
+
+		<script>
+			$(function(){
+				notifyTransaction();
+			})
+
+			function notifyTransaction(){
+				var url = $("meta[name='base_url']").attr('content');
+				console.log(url)
+				$.ajax({
+					type : 'GET',
+					dataType: 'json',
+					url: url+'/transaction/notif'
+				}).done(function(result){
+					//console.log(result)
+					if(result.pending > 0){
+						$('#notif_pending_class_1').addClass('kt-menu__link-badge');
+						$('#notif_pending_class_2').addClass('kt-badge kt-badge--warning kt-badge--inline');
+						$('#notif_pending_class_2').html(result.pending + ' fleet');
+					}
+
+					if(result.on_rent > 0){
+						$('#notif_onrent_class_1').addClass('kt-menu__link-badge');
+						$('#notif_onrent_class_2').addClass('kt-badge kt-badge--success kt-badge--inline');
+						$('#notif_onrent_class_2').html(result.on_rent + ' fleet');
+					}
+
+				}).fail(function(result){
+
+				})
+
+				setTimeout(notifyTransaction, 10000);
+			}
+		</script>
+		@yield('scripts')
 	</body>
 
 	<!-- end::Body -->

@@ -315,17 +315,35 @@ class MyHelper
             'November',
             'Desember'
         );
-        $pecahkan = explode('-', $tanggal);
-        
-        // variabel pecahkan 0 = tanggal
-        // variabel pecahkan 1 = bulan
-        // variabel pecahkan 2 = tahun
-     
-        return $pecahkan[2] . ' ' . $bulan[ (int)$pecahkan[1] ] . ' ' . $pecahkan[0];
+
+        if($tanggal == null){
+            return '-';
+        }else{
+            $pecahkan = explode('-', $tanggal);
+            
+            // variabel pecahkan 0 = tanggal
+            // variabel pecahkan 1 = bulan
+            // variabel pecahkan 2 = tahun
+         
+            return $pecahkan[2] . ' ' . $bulan[ (int)$pecahkan[1] ] . ' ' . $pecahkan[0];
+        }
     }
 
     public static function IDR($price){
         return 'Rp. '.number_format($price,0,',', '.');
+    }
+
+    public static function generateNomorFaktur($last_order = null){
+        $number = 1;
+
+        if($last_order == null){
+            return 'FAKTUR-'.Self::createrandom(4, null, 'ABCDEFGHJKLMNPQRSTUVWXYZ').'-'.$number;
+        }else{
+            $strings = explode('-', $last_order);
+            $number = ++$strings[2];
+
+            return 'FAKTUR-'.Self::createrandom(4, null, 'ABCDEFGHJKLMNPQRSTUVWXYZ').'-'.$number;
+        }
     }
 
 }

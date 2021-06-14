@@ -24,8 +24,10 @@ Route::prefix('armada')->middleware('validate_session')->group(function() {
 
 Route::prefix('tipe_armada')->middleware('validate_session')->group(function(){
     Route::get('/', 'TipeArmadaController@index')->name('tipe_armada.list');
-    Route::get('table', 'TipeArmadaController@table')->name('tipe_armada.table')->middleware('feature_control:tipe_armada_list,tipe_armada_update,tipe_armada_delete');
+    Route::get('table', 'TipeArmadaController@table')->name('tipe_armada.table')->middleware('feature_control:tipe_armada_list,tipe_armada_update,tipe_armada_delete,tipe_armada_create');
+    Route::get('create', 'TipeArmadaController@create')->name('tipe_armada.create')->middleware('feature_control:tipe_armada_create');
     Route::post('store', 'TipeArmadaController@store')->name('tipe_armada.store')->middleware('feature_control:tipe_armada_create');
+    Route::get('edit/{id}', 'TipeArmadaController@edit')->name('tipe_armada.edit')->middleware('feature_control:tipe_armada_edit');
     Route::post('update/{id}', 'TipeArmadaController@update')->name('tipe_armada.update')->middleware('feature_control:tipe_armada_update');
     Route::delete('delete/{id}', 'TipeArmadaController@delete')->name('tipe_armada.delete')->middleware('feature_control:tipe_armada_delete');
 });

@@ -47,7 +47,7 @@
     </div>
 
     <!-- Button trigger modal -->
-    
+
     <!-- Modal Store -->
     <form action="{{ route('driver.store') }}" method="POST">
         @csrf
@@ -126,6 +126,53 @@
             </div>
         </div>
     </form>
+
+    <div class="modal fade" id="scheduleDriver{{$item['id']}}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Driver's Schedule</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="kt-scroll ps ps--active-y" data-scroll="true" data-height="380" data-mobile-height="300" style="height: 380px; overflow: hidden;">
+                        <!--Begin::Timeline 3 -->
+                        <div class="kt-timeline-v2">
+                            <div class="kt-timeline-v2__items  kt-padding-top-25 kt-padding-bottom-30">
+                                @foreach ($item['transaction'] as $key => $transaction)
+                                    <div class="kt-timeline-v2__item">
+                                        @php
+                                            $mydate = explode(' ',tgl_indo(date('Y-m-d', strtotime($transaction['pickup_date']))));
+                                        @endphp
+                                        <span class="kt-timeline-v2__item-time" style="font-size: 1.2rem">{{ $mydate[0].' '.substr($mydate[1],0,3) }}</span>
+                                        <div class="kt-timeline-v2__item-cricle">
+                                            <i class="fa fa-genderless @if($transaction['status_transaksi'] == 'pending') kt-font-warning @else kt-font-primary @endif"></i>
+                                        </div>
+                                        <div class="kt-timeline-v2__item-text  kt-padding-top-5">
+                                            {{ tgl_indo(date('Y-m-d', strtotime($transaction['pickup_date']))) }}<b> &nbsp;&nbsp;s.d.&nbsp;&nbsp; </b>{{ tgl_indo(date('Y-m-d', strtotime($transaction['return_date']))) }}
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        <!--End::Timeline 3 -->
+                        <div class="ps__rail-x" style="left: 0px; bottom: 0px;">
+                            <div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div>
+                        </div>
+
+                        <div class="ps__rail-y" style="top: 0px; height: 380px; right: 0px;">
+                            <div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     @endforeach
 @endsection
 @section('scripts')

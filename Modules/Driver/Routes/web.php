@@ -17,5 +17,4 @@ Route::prefix('driver')->middleware('validate_session')->group(function() {
     Route::post('store', 'DriverController@store')->name('driver.store')->middleware('feature_control:driver_create');
     Route::post('update/{id}', 'DriverController@update')->name('driver.update')->middleware('feature_control:driver_update');
     Route::delete('delete/{id}', 'DriverController@delete')->name('driver.delete')->middleware('feature_control:driver_delete');
-    Route::delete('assign', 'DriverController@assignDriver')->name('driver.assign')->middleware('feature_control:driver_assign');
 });

@@ -53,7 +53,7 @@
                                 </div>
                             </label>
                             <div class="col-8">
-                                <select class="form-control" name="id_tipe_armada" required>
+                                <select class="form-control" name="id_tipe_armada" id="id_tipe_armada" required>
                                     <option value="">Pilih Tipe Armada</option>
                                     @foreach ($tipe_armada as $item)
                                         <option value="{{ $item['id'] }}" @if($item['id'] == $armada['id_tipe_armada']) selected @endif>{{ ucfirst($item['tipe']) }}</option>
@@ -69,9 +69,9 @@
                             </label>
                             <div class="col-8">
                                 <div class="input-group">
-                                    <input class="form-control" type="text" name="kode_armada" placeholder="E.g: AVANZA4000cc" autocomplete="off" value="{{ $armada['kode_armada'] }}" required>
+                                    <input class="form-control" type="text" name="kode_armada" id="kode_armada" placeholder="E.g: AVANZA4000cc" autocomplete="off" value="{{ $armada['kode_armada'] }}" required>
                                     <div class="input-group-append">
-                                        <a class="btn btn-secondary" id="btn-acak">#Acak Kode</a>
+                                        <a class="btn btn-secondary" id="btn-acak" data-url={{url('/')}}>#Acak Kode</a>
                                     </div>
                                 </div>
                             </div>
@@ -91,50 +91,12 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="form-group row">
-                            <label class="col-4 col-form-label">
-                                <div class="pull-right">
-                                    Status Driver <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Status Driver"></i>
-                                </div>
-                            </label>
-                            <div class="col-8">
-                                <select class="form-control" name="status_driver" required>
-                                    <option value="">Pilih Status Driver</option>
-                                    @foreach ($status_driver as $item)
-                                        <option value="{{ $item }}" @if($item == $armada['status_driver']) selected @endif>{{ ucfirst($item) }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-4 col-form-label">
-                                <div class="pull-right">
-                                    Harga Sewa <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Masukkan Harga Sewa Armada"></i>
-                                </div>
-                            </label>
-                            <div class="col-8">
-                                <input class="form-control" type="text" name="price" id="price" placeholder="Masukkan Harga Sewa" autocomplete="off" min="0" value="Rp {{ number_format($armada['price'],0,'.',',') }}" required>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-4 col-form-label">
-                                <div class="pull-right">
-                                    Gambar <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Masukkan Foto/Gambar Armada"></i>
-                                </div>
-                            </label>
-                            <div class="col-8">
-                                <input class="form-control" type="file" name="photo" id="photo" accept="image/x-png,image/gif,image/jpeg" autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-md-4"></div>
-                            <div class="col-md-8">
-                                <img src="{{ $armada['photo'] }}" alt="" width="150">
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <div class="pull-right">
+                    <a type="button" href="{{route('armada.list')}}" class="btn btn-secondary btn-sm">
+                        <i class="flaticon-cancel"></i> Cancel
+                    </a>
                     <button class="btn btn-primary btn-sm">
                         <i class="flaticon2-send-1"></i> Update
                     </button>
@@ -144,10 +106,23 @@
     </div>
 @endsection
 
+
 @section('scripts')
     <script>
-        $('#price').on('keyup',function(e){
-            $("#price").inputmask({ alias : "currency", prefix: 'Rp ',rightAlign: false, 'digits': '0',autoUnmask: true });
-        });
+        $('#btn-acak').on('click', function(e){
+            var url = $(this).data('url') +'/armada/generate-random-code?id=' + $('#id_tipe_armada option:selected').text()
+            console.log(url)
+            $.ajax({
+                'type' : 'GET',
+                'dataType' : 'json',
+                'url' : url
+            }).done(function(result){
+                console.log(result)
+                $('#kode_armada').val(result.code)
+
+            }).fail(function(jqXHR, textStatus){
+                console.log('fail',textStatus)
+            })
+        })
     </script>
 @endsection
