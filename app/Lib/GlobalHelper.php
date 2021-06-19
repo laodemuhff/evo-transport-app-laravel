@@ -58,8 +58,8 @@ if (! function_exists('decSlug')) {
 }
 
 if (! function_exists('tgl_indo')) {
-	function tgl_indo($tanggal){
-		return MyHelper::tgl_indo($tanggal);
+	function tgl_indo($tanggal, $type='date'){
+		return MyHelper::tgl_indo($tanggal, $type);
 	}
 }
 

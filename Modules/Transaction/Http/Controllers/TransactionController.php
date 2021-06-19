@@ -17,6 +17,8 @@ use Validator;
 use Illuminate\Validation\Rule;
 use Auth;
 use Illuminate\Support\Facades\Crypt;
+use App\Mail\PaymentInvoice;
+use Illuminate\Support\Facades\Mail;
 
 class TransactionController extends Controller
 {
@@ -147,9 +149,10 @@ class TransactionController extends Controller
         $post['pickup_date'] = Self::format_date($post['pickup_date']);
 
         $rules = [
+            'email_customer'     => [ 'required' ],
             'nama_customer'      => [ 'required' ],
             'alamat_customer'    => [ 'required' ],
-            'no_hp_customer'     => [ 'required', 'unique:transactions,no_hp_customer', 'phone_number_indo', 'min:11', 'max:13'],
+            'no_hp_customer'     => [ 'required', 'phone_number_indo', 'min:11', 'max:13'],
             'durasi_sewa'        => [ 'required', 'numeric' ],
             'pickup_date'        => [ 'required', 'date' ],
             'status_lepas_kunci' => [ Rule::in([null, 'off key', 'with driver']) ],
@@ -216,6 +219,11 @@ class TransactionController extends Controller
 
                 DB::commit();
 
+                $prayarat = Setting::where('key', 'syarat_dan_jaminan_email')->first()['value'] ?? '';
+
+                Mail::to($post['email_customer'])->send(new PaymentInvoice($prayarat, $store_transaction));
+
+                // if booking conduct by guest/customer
                 if(!empty($post['guest_booking'])){
                     return redirect('prasyarat?no_faktur='.Crypt::encryptString($post['nomor_faktur']))->with('success', ['Success create transaction']);
                 }

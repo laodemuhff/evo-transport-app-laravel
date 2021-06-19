@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Armada;
 use DB;
 
 class Transaction extends Model
@@ -31,7 +32,8 @@ class Transaction extends Model
 
     protected $appends = [
         'expired_at',
-        'schedule_status'
+        'schedule_status',
+        'tipe_armada'
     ];
 
     public function armada(){
@@ -84,6 +86,14 @@ class Transaction extends Model
 
         // Return matches
         return isset($matches[1]) ? $matches[1] : [];
+    }
+
+    public function getTipeArmadaAttribute(){
+        $armada = Armada::with('tipe_armada')->where('id', $this->id_armada)->first();
+
+        $tipe_armada = $armada['tipe_armada']['tipe'] ?? '';
+
+        return $tipe_armada;
     }
 
 }

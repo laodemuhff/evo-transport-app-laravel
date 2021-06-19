@@ -149,7 +149,7 @@ class MyHelper
         } else {
             return  ['status' => 'fail', 'message' => "Sorry, there was an error uploading your file."];
         }
-    
+
     }
 
     // check extension untuk gambar type base 64
@@ -300,7 +300,7 @@ class MyHelper
         return $generatedstring;
     }
 
-    public static function tgl_indo($tanggal){
+    public static function tgl_indo($tanggal, $type = "date"){
         $bulan = array (
             1 =>   'Januari',
             'Februari',
@@ -319,13 +319,22 @@ class MyHelper
         if($tanggal == null){
             return '-';
         }else{
-            $pecahkan = explode('-', $tanggal);
-            
-            // variabel pecahkan 0 = tanggal
-            // variabel pecahkan 1 = bulan
-            // variabel pecahkan 2 = tahun
-         
-            return $pecahkan[2] . ' ' . $bulan[ (int)$pecahkan[1] ] . ' ' . $pecahkan[0];
+            if($type == "datetime"){
+                $pecahkan_dt = explode(' ', $tanggal);
+
+                $pecahkan = explode('-', $pecahkan_dt[0]);
+
+                return $pecahkan[2] . ' ' . $bulan[ (int)$pecahkan[1] ] . ' ' . $pecahkan[0] . ' ' . $pecahkan_dt[1];
+
+            }else{
+                $pecahkan = explode('-', $tanggal);
+
+                // variabel pecahkan 0 = tanggal
+                // variabel pecahkan 1 = bulan
+                // variabel pecahkan 2 = tahun
+
+                return $pecahkan[2] . ' ' . $bulan[ (int)$pecahkan[1] ] . ' ' . $pecahkan[0];
+            }
         }
     }
 
