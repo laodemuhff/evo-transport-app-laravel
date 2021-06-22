@@ -326,7 +326,7 @@ class TransactionController extends Controller
 
                 if(!empty($nearest_date)){
                     if(strtotime($pickup_date) > strtotime($nearest_date['pickup_date'])){
-                        return redirect()->back()->withErrors('Please make sure to assign driver sequentially by date, To Continue Please Review the '.$nearest_date['nomor_faktur']);
+                        return redirect()->back()->withErrors('This is not the nearest schedule for this driver, To Continue Please Review the '.$nearest_date['nomor_faktur']);
                     }
                 }
             }else{

@@ -42,7 +42,7 @@ class Transaction extends Model
 
     public function getExpiredAtAttribute(){
         if($this->status_transaksi == 'pending')
-            return date('Y-m-d H:i:s', strtotime('+24 hours', strtotime($this->created_at)));
+            return date('Y-m-d H:i:s', strtotime('+2 hours', strtotime($this->created_at)));
         else
             return null;
     }

@@ -154,6 +154,43 @@
                 <div class="row" style="margin-bottom: 5%">
                     {{-- Input field --}}
                     <div class="col-md-6" style="margin:auto;width:50%">
+                        <div class="form-group row" @if (empty($cat_id_tipe_armada)) @endif id="form-group-pickup-date">
+                            <label class="col-form-label">
+                                <div class="pull-right" style="color:black; font-size:15px;">
+                                    Pickup Date <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Pickup Date"></i>
+                                </div>
+                            </label>
+                            {{-- <input class="form-control datetimepicker" type="text" name="pickup_date" id="pickup_date" autocomplete="off" required disabled> --}}
+                            <div class="input-group date" id="datetimepicker1" data-target-input="nearest">
+                                <input type="text" name="pickup_date" id="pickup_date" class="form-control datetimepicker-input" data-target="#datetimepicker1" value="{{ old('pickup_date') }}" required/>
+                                <div class="input-group-append" data-target="#datetimepicker1" data-toggle="datetimepicker">
+                                    <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                </div>
+                            </div>
+                            @error('pickup_date')
+                                <div class="my-alert alert-danger">! {{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="form-group row" @if (empty($cat_id_tipe_armada)) @endif id="form-group-durasi-sewa">
+                            <label class="col-form-label">
+                                <div class="pull-right" style="color:black; font-size:15px;">
+                                    Durasi Sewa <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Durasi Sewa (Jam)"></i>
+                                </div>
+                            </label>
+
+                            <div class="input-group" id="durasi_sewa_box">
+                                <div class="input-group-prepend">
+                                    <a class="btn btn-danger" type="button" style="color: white; font-weight:bolder" id="sub_durasi_sewa">-</a>
+                                </div>
+                                <input class="form-control" type="text" name="durasi_sewa" id="durasi_sewa" autocomplete="off" value="{{ old('durasi_sewa') ?? 12 }}" required readonly style="text-align:center; font-weight:bold">
+                                <div class="input-group-prepend">
+                                    <a class="btn btn-primary" type="button" style="color: white; font-weight:bolder" id="add_durasi_sewa">+</a>
+                                </div>
+                            </div>
+                            @error('durasi_sewa')
+                                <div class="my-alert alert-danger">! {{ $message }}</div>
+                            @enderror
+                        </div>
                         <div class="form-group row">
                             <label class="col-form-label">
                                 <div class="pull-right" style="color:black; font-size:15px;">
@@ -172,43 +209,6 @@
                                     @endif
                                 @endforeach
                             </select>
-                        </div>
-                        <div class="form-group row" @if (empty($cat_id_tipe_armada)) style="display: none" @endif id="form-group-durasi-sewa">
-                            <label class="col-form-label">
-                                <div class="pull-right" style="color:black; font-size:15px;">
-                                    Durasi Sewa <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Durasi Sewa (Jam)"></i>
-                                </div>
-                            </label>
-
-                            <div class="input-group" id="durasi_sewa_box">
-                                <div class="input-group-prepend">
-                                    <a class="btn btn-danger" type="button" style="color: white; font-weight:bolder" id="sub_durasi_sewa">-</a>
-                                </div>
-                                <input class="form-control" type="text" name="durasi_sewa" id="durasi_sewa" autocomplete="off" value="{{ old('durasi_sewa') ?? 12 }}" required @if(empty($cat_id_tipe_armada)) disabled @endif style="text-align:center; font-weight:bold">
-                                <div class="input-group-prepend">
-                                    <a class="btn btn-primary" type="button" style="color: white; font-weight:bolder" id="add_durasi_sewa">+</a>
-                                </div>
-                            </div>
-                            @error('durasi_sewa')
-                                <div class="my-alert alert-danger">! {{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="form-group row" @if (empty($cat_id_tipe_armada)) style="display: none" @endif id="form-group-pickup-date">
-                            <label class="col-form-label">
-                                <div class="pull-right" style="color:black; font-size:15px;">
-                                    Pickup Date <span style="color:red;">*</span> <i class="flaticon-info" data-toggle="kt-tooltip" data-placement="top" data-original-title="Pickup Date"></i>
-                                </div>
-                            </label>
-                            {{-- <input class="form-control datetimepicker" type="text" name="pickup_date" id="pickup_date" autocomplete="off" required disabled> --}}
-                            <div class="input-group date" id="datetimepicker1" data-target-input="nearest">
-                                <input type="text" name="pickup_date" id="pickup_date" class="form-control datetimepicker-input" data-target="#datetimepicker1" value="{{ old('pickup_date') }}" required/>
-                                <div class="input-group-append" data-target="#datetimepicker1" data-toggle="datetimepicker">
-                                    <div class="input-group-text"><i class="fa fa-calendar"></i></div>
-                                </div>
-                            </div>
-                            @error('pickup_date')
-                                <div class="my-alert alert-danger">! {{ $message }}</div>
-                            @enderror
                         </div>
                         <div class="form-group row" @if (empty($cat_id_tipe_armada)) style="display: none" @endif id="form-group-status-lepas-kunci">
                             <label class="col-form-label">
@@ -408,9 +408,9 @@
         }
 
         function disabledCertainInput(){
-            $('#durasi_sewa').prop('disabled', true)
-            $('#durasi_sewa').prop('readonly', false)
-            $('#pickup_date').prop('disabled', true)
+            // $('#durasi_sewa').prop('disabled', true)
+            // $('#durasi_sewa').prop('readonly', false)
+            // $('#pickup_date').prop('disabled', true)
             $('#status_lepas_kunci').prop('disabled', true)
             $('#status_pengambilan').prop('disabled', true)
             $('#status_lepas_kunci').prop('selectedIndex', 0)
@@ -419,22 +419,22 @@
             $('#status_lepas_kunci').data('current-tambahan',0)
             $('#status_pengambilan').data('current-tambahan',0)
 
-            $('#form-group-durasi-sewa').slideUp(200)
-            $('#form-group-pickup-date').slideUp(200)
+            // $('#form-group-durasi-sewa').slideUp(200)
+            // $('#form-group-pickup-date').slideUp(200)
             $('#form-group-status-lepas-kunci').slideUp(200)
             $('#form-group-status-pengambilan').slideUp(200)
             $('#cek-harga-sewa-btn-form').slideUp(200);
         }
 
         function enabledCertainInput(){
-            $('#durasi_sewa').prop('disabled', false)
-            $('#durasi_sewa').prop('readonly', true)
-            $('#pickup_date').prop('disabled', false)
+            // $('#durasi_sewa').prop('disabled', false)
+            // $('#durasi_sewa').prop('readonly', true)
+            // $('#pickup_date').prop('disabled', false)
             $('#status_lepas_kunci').prop('disabled', false)
             $('#status_pengambilan').prop('disabled', false)
 
-            $('#form-group-durasi-sewa').slideDown(200)
-            $('#form-group-pickup-date').slideDown(200)
+            // $('#form-group-durasi-sewa').slideDown(200)
+            // $('#form-group-pickup-date').slideDown(200)
             $('#form-group-status-lepas-kunci').slideDown(200)
             $('#form-group-status-pengambilan').slideDown(200)
             $('#cek-harga-sewa-btn-form').slideDown(200);
