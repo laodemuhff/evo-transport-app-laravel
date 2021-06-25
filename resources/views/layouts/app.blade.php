@@ -35,7 +35,7 @@
 		<div id="kt_header_mobile" class="kt-header-mobile  kt-header-mobile--fixed ">
 			<div class="kt-header-mobile__logo">
 				<a href="{{route('admin.dashboard')}}">
-					<img alt="Hemofilia Kita" src="{{ asset('assets/img/logo.png') }}" height="50"/>
+					<img alt="Evo Transport" src="{{ asset('assets/img/logo.png') }}" height="50"/>
 				</a>
 			</div>
 			<div class="kt-header-mobile__toolbar">
@@ -57,7 +57,7 @@
 							<div class="kt-header__brand " id="kt_header_brand">
 								<div class="kt-header__brand-logo">
 									<a href="{{route('admin.dashboard')}}">
-										<img alt="Hemofilia Kita" src="{{ asset('assets/img/logo.png') }}" height="55"/>
+										<img alt="Evo Transport" src="{{ asset('assets/img/logo.png') }}" height="55"/>
 									</a>
 								</div>
 							</div>
@@ -171,7 +171,7 @@
 						<div class="kt-container  kt-container--fluid ">
 							<div class="kt-footer__wrapper">
 								<div class="kt-footer__copyright">
-									2020&nbsp;&copy;&nbsp;<a href="#" target="_blank" class="kt-link">Hemofilia Kita</a>
+									2020&nbsp;&copy;&nbsp;<a href="#" target="_blank" class="kt-link">Evo Transport</a>
 								</div>
 							</div>
 						</div>

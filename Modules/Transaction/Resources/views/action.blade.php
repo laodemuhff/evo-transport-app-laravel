@@ -5,6 +5,9 @@
 
     <a href='#' class='btn btn-info btn-sm' style='color: white; width:35px; padding: 8px !important' data-toggle='modal' data-target='#detailTrx{{$data['id']}}' title='detail {{$data['nomor_faktur']}}'>
         <i class='la la-eye'></i>
+        @if (!empty($data['foto_kwitansi']))
+            <span style="background-color: red; width:10px; height:10px; border-radius:100%; position:absolute; top:0; right:0"></span>
+        @endif
     </a>
 
     @if (isset($data['id_driver']))
@@ -21,7 +24,10 @@
         <i class='la la-trash'></i>
     </a>
 
-    <a href='#' class='btn btn-info btn-sm' style='color: white; width:35px; padding: 8px !important' data-toggle='modal' data-target='#detailTrx{{$data['id']}}' title='detail {{$data['nomor_faktur']}}'>
+    <a href='#' class='btn btn-info btn-sm' style='color: white; width:35px; padding: 8px !important; position: relative;' data-toggle='modal' data-target='#detailTrx{{$data['id']}}' title='detail {{$data['nomor_faktur']}}'>
         <i class='la la-eye'></i>
+        @if (!empty($data['foto_kwitansi']))
+            <span style="background-color: red; width:10px; height:10px; border-radius:100%; position:absolute; top:0; right:0"></span>
+        @endif
     </a>
 @endif

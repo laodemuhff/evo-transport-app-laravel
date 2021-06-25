@@ -8,6 +8,7 @@ use App\Models\TipeArmada;
 use App\Models\Setting;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Crypt;
+use App\Lib\MyHelper;
 
 class HomeController extends Controller
 {
@@ -53,5 +54,48 @@ class HomeController extends Controller
         $prayarat = Setting::where('key', 'syarat_dan_jaminan')->first()['value'] ?? '';
 
         return view('guest.prasyarat', ['prasyarat' => $prayarat, 'no_faktur' => Crypt::decryptString($r->get('no_faktur'))]);
+    }
+
+    public function uploadKwitansi(Request $request){
+        try{
+            $token = $request->get('token');
+
+            $cek = evo_decrypt($token);
+
+            if(!empty($token)){
+                return view('guest.upload_kwitansi', ['token' => $token]);
+            }else{
+                return redirect('home');
+            }
+
+        }catch(\Throwable $th){
+            return redirect('home');
+        }
+    }
+
+    public function storeKwitansi(Request $request){
+        try{
+            $no_faktur = evo_decrypt($request->get('token'));
+
+            $result = MyHelper::uploadImagePublic('\image\kwitansi\\');
+
+            if(isset($result['status']) && $result['status'] == 'success'){
+                $filepath = $result['filename'];
+
+                $tr = Transaction::where('nomor_faktur', $no_faktur);
+                if($tr->first()){
+                    $tr->update([
+                        'foto_kwitansi' => $filepath
+                    ]);
+                }
+
+                return redirect()->back()->withSuccess(['Successfully to upload kwitansi']);
+            }
+
+            return redirect()->back()->withErrors('Failed to upload kwitansi');
+        }catch(\Throwable $th){
+            return redirect()->back()->withErrors('Something Went Wrong');
+        }
+
     }
 }

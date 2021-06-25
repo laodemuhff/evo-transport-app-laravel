@@ -5,6 +5,7 @@
  */
 
 use App\Lib\MyHelper;
+use Illuminate\Support\Facades\Crypt;
 
 if (! function_exists('adminFeature')) {
 	/**
@@ -70,4 +71,15 @@ if (! function_exists('IDR')) {
 	}
 }
 
+if(! function_exists('evo_encrypt')){
+    function evo_encrypt($string){
+        return Crypt::encryptString($string);
+    }
+}
+
+if(! function_exists('evo_decrypt')){
+    function evo_decrypt($string){
+        return Crypt::decryptString($string);
+    }
+}
 

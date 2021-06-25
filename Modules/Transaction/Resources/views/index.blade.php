@@ -380,6 +380,16 @@
                                         <p>{{ IDR($item['grand_total']) }}</p>
                                     </div>
                                 </div>
+                                @if (!empty($item['foto_kwitansi']))
+                                    <div class="form-group row detal-trx">
+                                        <div class="col-md-4" style="padding-top:2%">
+                                            <label for="">Foto</label>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <a href="#" class="btn btn-secondary" data-toggle="modal" data-target="#kwitansi{{$item['id']}}">Cek Bukti Pembayaran</a>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
 
                             {{-- Schedule --}}
@@ -466,6 +476,21 @@
                                         @endif
 
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="kwitansi{{$item['id']}}" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="my-modal-title" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="my-modal-title">Bukti Pembayaran {{$item['nomor_faktur']}}</h5>
+                                    <button class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <img src="{{asset($item['foto_kwitansi'])}}" alt="" width="100%">
                                 </div>
                             </div>
                         </div>

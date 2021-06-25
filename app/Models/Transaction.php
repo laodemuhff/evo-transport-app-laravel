@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Armada;
+use App\Models\Setting;
 use DB;
 
 class Transaction extends Model
 {
     protected $fillable = [
         'nomor_faktur',
+        'email_customer',
         'nama_customer',
         'alamat_customer',
         'no_hp_customer',
@@ -27,7 +29,8 @@ class Transaction extends Model
         'is_cancelled',
         'cancelled_reason',
         'cancelled_by',
-        'grand_total'
+        'grand_total',
+        'foto_kwitansi'
     ];
 
     protected $appends = [
@@ -41,8 +44,12 @@ class Transaction extends Model
     }
 
     public function getExpiredAtAttribute(){
+        date_default_timezone_set("Asia/Jakarta");
+
+        $expire_hour = Setting::where("key", "expire_booking_time_hours")->first()['value'] ?? 2;
+
         if($this->status_transaksi == 'pending')
-            return date('Y-m-d H:i:s', strtotime('+2 hours', strtotime($this->created_at)));
+            return date('Y-m-d H:i:s', strtotime('+'.$expire_hour.' hours', strtotime($this->created_at)));
         else
             return null;
     }

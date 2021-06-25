@@ -9,13 +9,70 @@ use Validator;
 use App\Models\User;
 use App\Models\AdminFeature;
 use App\Models\UserAdminFeature;
+use App\Models\Transaction;
+use App\Models\Driver;
+use App\Models\Armada;
 use Hash;
 use Illuminate\Validation\Rule;
 
+
 class AuthController extends Controller
 {
-    public function dashboard(){
+    public function showDashboard(){
         return view('dashboard');
+    }
+
+    public function dashboardInfo(Request $request){
+
+        date_default_timezone_set("Asia/Jakarta");
+        $post = $request->all();
+
+        // set default to all time
+        $start_date = '1970-01-01 00:00:00';
+        $end_date = \Carbon\Carbon::now();
+
+        if(!empty($post['start'])){
+            $start_date = $post['start'];
+        }
+
+        if(!empty($post['end'])){
+            $end_date = $post['end'];
+        }
+
+        $total_customer =  Transaction::select('email_customer')->whereBetween('created_at', [$start_date, $end_date])->distinct()->get()->count();
+        $total_driver = Driver::whereBetween('created_at', [$start_date, $end_date])->count();
+        $total_armada = Armada::whereBetween('created_at', [$start_date, $end_date])->count();
+        $total_armada_ready= Armada::where("status_armada", "ready")->get()->count();
+        $total_armada_not_ready= Armada::where("status_armada", "not ready")->get()->count();
+        $total_transaction_done = Transaction::where('status_transaksi', 'on rent')->orWhere('status_transaksi', 'success')->whereBetween('created_at', [$start_date, $end_date])->get()->count();
+        $total_transaction_done_income = Transaction::where('status_transaksi', 'on rent')->orWhere('status_transaksi', 'success')->whereBetween('created_at', [$start_date, $end_date])->sum('grand_total');
+        $total_transaction_pending = Transaction::where('status_transaksi', 'pending')->whereBetween('created_at', [$start_date, $end_date])->get()->count();
+        $total_transaction_on_rent = Transaction::where('status_transaksi', 'on rent')->whereBetween('created_at', [$start_date, $end_date])->get()->count();
+        $total_transaction_success = Transaction::where('status_transaksi', 'success')->whereBetween('created_at', [$start_date, $end_date])->get()->count();
+        $total_transaction_cancelled = Transaction::where('status_transaksi', 'cancelled')->whereBetween('created_at', [$start_date, $end_date])->get()->count();
+
+        $data =  [
+            'total_customer' => $total_customer,
+            'total_driver' => $total_driver,
+            'armada' => [
+                'total' => $total_armada,
+                'ready' => $total_armada_ready,
+                'not_ready' => $total_armada_not_ready
+            ],
+            'transaction_done' => [
+                'total' => $total_transaction_done,
+                'income' => $total_transaction_done_income
+            ],
+            'transaction_status_sum' => [
+                'pending' => $total_transaction_pending,
+                'on_rent' => $total_transaction_on_rent,
+                'success' => $total_transaction_success,
+                'cancelled' => $total_transaction_cancelled,
+            ]
+
+        ];
+        // dd($data);
+        return response()->json($data);
     }
 
     public function login(){
@@ -103,9 +160,9 @@ class AuthController extends Controller
         }
 
         unset($post['confirmation_password']);
-        
+
         $post['password'] = Hash::make($post['password']);
-        
+
         $update = User::where('id', $id)->update($post);
 
         if($update){
