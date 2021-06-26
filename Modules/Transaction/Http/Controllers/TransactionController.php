@@ -364,13 +364,22 @@ class TransactionController extends Controller
     }
 
     public function successRent(Request $request){
+        date_default_timezone_set('Asia/Jakarta');
+
         $post = $request->except('_token');
 
-        $transaction = Transaction::where('id', $post['id']);
+        $transaction = Transaction::where('id', $post['id'])->first();
 
         $post['status_transaksi'] = 'success';
         $post['customer_return_date'] = date('Y-m-d H:i:s');
-        $update = $transaction->update($post);
+
+        if(strtotime($transaction['return_date']) < strtotime($post['customer_return_date'])){
+            $pembilang =  (strtotime($post['customer_return_date']) - strtotime($transaction['return_date'])) / 3600;
+
+            $post['denda'] = (int) $pembilang * (int) Setting::where('key', 'denda_per_hour')->first()['value'] ?? 25000;
+        }
+
+        $update = Transaction::where('id', $post['id'])->update($post);
 
         if($update){
             $transaction = $transaction->first();

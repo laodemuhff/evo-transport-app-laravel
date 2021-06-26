@@ -461,7 +461,7 @@
                                             <div class="badge badge-danger">
                                                 <span>{{ $item['schedule_status'] }}</span>
                                             </div>
-                                        @elseif($item['schedule_status'] == 'late return')
+                                        @elseif($item['schedule_status'] == 'late return' || $item['schedule_status'] == 'late')
                                             <div class="badge badge-danger">
                                                 <span>{{ $item['schedule_status'] }}</span>
                                             </div>
@@ -474,9 +474,21 @@
                                                 <span>{{ $item['schedule_status'] }}</span>
                                             </div>
                                         @endif
-
                                     </div>
                                 </div>
+
+                                @if ($item['schedule_status'] == 'late return')
+                                    <div class="form-group row detal-trx">
+                                        <div class="col-md-4">
+                                            <label for="">Biaya Denda</label>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="badge badge-warning">
+                                                <span>{{ 'Rp. '.number_format($item['denda'],0,',','.') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

@@ -29,6 +29,7 @@ class Transaction extends Model
         'is_cancelled',
         'cancelled_reason',
         'cancelled_by',
+        'denda',
         'grand_total',
         'foto_kwitansi'
     ];
@@ -67,10 +68,13 @@ class Transaction extends Model
             return 'waiting confirmation';
 
         }elseif($this->status_transaksi == 'on rent' && strtotime($this->return_date) < strtotime(date('Y-m-d H:i:s'))){
-            return 'late return';
+            return 'late';
 
         }elseif($this->status_transaksi == 'on rent' && strtotime($this->return_date) >= strtotime(date('Y-m-d H:i:s'))){
             return 'on progress';
+
+        }elseif($this->status_transaksi == 'success' && strtotime($this->return_date) < strtotime($this->customer_return_date)){
+            return 'late return';
 
         }else{
             return 'returned';
